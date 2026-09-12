@@ -95,6 +95,31 @@ re-encode existing evidence only and keep the adaptation out of the PR. When
 another slice merges, rebase onto the new `main` and repeat verification and
 review on the new head.
 
+## Syncing with upstream (claude-skills)
+
+`upstream` tracks `future3OOO/claude-skills`. Port forward with:
+
+```bash
+./scripts/sync-from-upstream.sh
+```
+
+It diffs upstream since `.upstream-sync`, runs each changed file through
+`scripts/estate_xform.py` (filename map + token map), stages the result, and
+prints diverged files — `AGENTS.md`, `config.json`, `README.md`, the devin
+hook variants, `code-review` frontmatter — for manual merge instead of
+overwriting them. Residual `claude` hits are printed to stderr; review the
+staged diff, then commit.
+
+Back-port a devin-side improvement to the Claude estate without touching
+the local `~/projects/claude-skills` checkout:
+
+```bash
+./scripts/sync-to-upstream.sh skills/<name>/SKILL.md hooks/lib/<file>.py
+```
+
+It clones upstream to a scratch dir, applies the inverse transform, and
+pushes a `devin-sync/<ts>` branch for PR.
+
 ## Workflow state root
 
 `DEVIN_WORKFLOW_STATE_ROOT` selects where workflow state is stored; otherwise it
