@@ -15,7 +15,7 @@ from .preflight_document import validated_document
 from .command_runner import emit_json as _emit_json, print_output as _print_output, run as _run, run_entry as _run_entry
 from .repo_identity import RepoIdentity, RepoIdentityError, resolve_repo_identity
 from .state_prune import prune
-from .state_store import _active_candidate_tree, tree_manifest, utc_timestamp
+from .state_store import _active_candidate_tree, repo_state_dir, state_root, tree_manifest, utc_timestamp
 from .workflow_documents import (
     advisor_disposition_document,
     advisor_envelope,
@@ -101,6 +101,14 @@ def parser() -> argparse.ArgumentParser:
     for name in ("status", "summary"):
         command = commands.add_parser(name)
         _repo(command)
+
+    command = commands.add_parser(
+        "paths",
+        help="print the resolved workflow-state paths for this repository; "
+             "with --workflow-id also prints the governing-design path",
+    )
+    _repo(command)
+    command.add_argument("--workflow-id")
 
     command = commands.add_parser("history", help="read ordered accepted events")
     _repo(command)
@@ -367,6 +375,16 @@ def _dispatch(args: argparse.Namespace) -> int:
         _emit_json(public_status(begin(identity, args.slug, _intent(args))))
     elif args.command == "status":
         _emit_json(public_status(_state(identity), identity))
+    elif args.command == "paths":
+        directory = repo_state_dir(identity)
+        out: dict[str, object] = {
+            "stateRoot": str(state_root()),
+            "repoKey": identity.key,
+            "repoStateDir": str(directory),
+        }
+        if args.workflow_id:
+            out["designPath"] = str(directory / "designs" / f"{args.workflow_id}.md")
+        _emit_json(out)
     elif args.command == "summary":
         print(summary(identity))
     elif args.command == "history":

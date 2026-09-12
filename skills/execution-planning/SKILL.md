@@ -35,7 +35,13 @@ Before implementation starts, save one Markdown design under the selected workfl
 
 `<workflow-state-root>/<repo-key>/designs/<workflowId>.md`
 
-The workflow's public status Interface supplies `<workflowId>`; callers do not derive or normalize another workflow identity. The workflow state root is `DEVIN_WORKFLOW_STATE_ROOT` when set, otherwise `${DEVIN_ESTATE_HOME:-$HOME/.config/devin}/state`. Do not derive `<repo-key>` independently; use `hooks.lib.repo_identity.resolve_repo_identity()` or the installed `repo_identity.py --field key` Interface.
+The workflow's public status Interface supplies `<workflowId>`; callers do not derive or normalize another workflow identity. Resolve the design path through the installed workflow CLI — never compute the state root by hand:
+
+```bash
+python3 <estate>/skills/repo-production-workflow/scripts/workflow.py paths --repo "$PWD" --workflow-id <workflowId>
+```
+
+`paths` prints the resolved `designPath`, `repoStateDir`, and `stateRoot`. The prose description of that resolution (`DEVIN_WORKFLOW_STATE_ROOT`, then `${DEVIN_ESTATE_HOME:-$HOME/.config/devin}/state`) is context only; `~/.local/share/devin` is the CLI's data dir and is not the workflow state root.
 
 ## Governing Design Format
 

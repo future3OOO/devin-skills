@@ -1,6 +1,6 @@
 # Governing Design Template
 
-Copy the fenced design body to the repository's workflow-state `designs/` directory, not into the Git checkout. Remove unused optional sections.
+Copy the fenced design body to the repository's workflow-state `designs/` directory, not into the Git checkout. Resolve the path with `workflow.py paths --repo "$PWD" --workflow-id <id>` — do not compute the state root by hand. Remove unused optional sections.
 
 ````md
 # <Title>
