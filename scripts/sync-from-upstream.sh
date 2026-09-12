@@ -24,24 +24,19 @@ while IFS=$'\t' read -r status file extra; do
   case "$status" in
     M|A|T)
       if is_manual "$file"; then manual_hits+=("$file"); continue; fi
-      dest=$(git show "upstream/main:$file" | python3 scripts/estate_xform.py to-devin "$file" > /tmp/x.$$ && \
-             python3 - "$file" <<'PY'
-import sys; sys.path.insert(0, "scripts")
-from estate_xform import xform_path, FILENAME
-print(xform_path(sys.argv[1], FILENAME))
-PY
-)
+      dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path; print(xform_path('$file','devin'))")
+      git show "upstream/main:$file" | python3 scripts/estate_xform.py to-devin "$file" > /tmp/x.$$
       mkdir -p "$(dirname "$dest")"; mv /tmp/x.$$ "$dest"; echo "  ported  $file -> $dest"
       ;;
     D)
-      dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path,FILENAME; print(xform_path('$file',FILENAME))")
+      dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path; print(xform_path('$file','devin'))")
       [[ -e "$dest" ]] && { rm "$dest"; echo "  deleted $dest"; }
       ;;
     R*)
       if is_manual "$extra"; then manual_hits+=("$extra"); continue; fi
-      dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path,FILENAME; print(xform_path('$extra',FILENAME))")
+      dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path; print(xform_path('$extra','devin'))")
       git show "upstream/main:$extra" | python3 scripts/estate_xform.py to-devin "$extra" > "$dest"
-      old=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path,FILENAME; print(xform_path('$file',FILENAME))")
+      old=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path; print(xform_path('$file','devin'))")
       [[ -e "$old" && "$old" != "$dest" ]] && rm "$old"
       echo "  renamed $file -> $extra (as $dest)"
       ;;

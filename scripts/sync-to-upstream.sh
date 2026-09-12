@@ -13,7 +13,7 @@ git -C "$work" switch -c "$branch" --quiet
 
 for f in "$@"; do
   [[ -f "$f" ]] || { echo "skip (not a file): $f"; continue; }
-  dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import xform_path,FILENAME_REV; print(xform_path('$f',FILENAME_REV))")
+  dest=$(python3 -c "import sys; sys.path.insert(0,'scripts'); from estate_xform import _inverse_path; p='$f'; p=_inverse_path(p,'devin'); p=_inverse_path(p,'codex'); print(p)")
   mkdir -p "$work/$(dirname "$dest")"
   python3 scripts/estate_xform.py to-claude "$f" < "$f" > "$work/$dest"
   echo "  back-ported $f -> $dest"
