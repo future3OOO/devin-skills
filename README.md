@@ -1,7 +1,10 @@
 # devin-skills
 
-Version-controlled source for the governed Devin agent estate. The
-tracked files on `main` are authoritative; `~/.config/devin/` is the installed copy.
+This repository is the version-controlled source; the **Devin estate** is the
+installed copy at `~/.config/devin/` that Devin actually loads. Terminology is
+deliberate: `devin-skills` and `claude-skills` name the Git projects only — the
+installed directories are the Devin estate (`~/.config/devin/`) and the Claude
+estate (`~/.claude/`). Tracked files on `main-devin` are authoritative.
 Machine-managed files and config keys that are not tracked here must survive
 an install — the installer merges rather than overwrites.
 
@@ -21,7 +24,7 @@ and skill references. Adding development tests elsewhere must update the shared
 
 ## Workflow boundary
 
-The estate records one repository-scoped production workflow:
+The workflow records one repository-scoped production pass:
 
 ```
 context -> preflight advice -> production preflight -> TDD -> production-code
@@ -79,10 +82,10 @@ and skills resolve from `~/.config/devin/skills/`.
 
 **Install, motherfucker.**
 
-The procedure above reconciles the whole estate from pinned remote `main`.
+The procedure above reconciles the whole estate from pinned remote `main-devin`.
 For a verified but unmerged slice, pin its published head and install only
 the branch's changed-path set —
-`git diff --name-status origin/main...HEAD` — and within it only paths with a
+`git diff --name-status origin/main-devin...HEAD` — and within it only paths with a
 live target in the mapping above, applying the same test exclusions; a scoped
 install must not restore them. Repository-only paths such as `README.md` have
 none. Update a live path when it matches current `main`, the candidate,
