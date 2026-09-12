@@ -52,7 +52,7 @@ version. The wrapper sends the declaration and the complete design body as
 framed evidence, and the advisor never owns dispositions.
 
 The canonical imaginary-risk ban and the premise/occurrence checks in the
-repo's `CLAUDE.md` govern architecture-family decisions; this checkpoint adds
+repo's `AGENTS.md` or `CLAUDE.md` govern architecture-family decisions; this checkpoint adds
 procedure, not new doctrine. A family selection or rejection resting on a
 falsifiable prediction about existing behavior, tests, compatibility, or
 runtime semantics stays unresolved — whoever made the prediction: planning,

@@ -9,7 +9,7 @@ This skill owns the seven quality principles below. `production-code` extends
 them with execution procedure; it does not redefine them.
 
 Judge the changed surface, not unrelated legacy debt. Cite the diff, contract,
-and concrete proof. The hard invariants remain owned by `CLAUDE.md`.
+and concrete proof. The hard invariants remain owned by `AGENTS.md`.
 
 ## Seven principles
 

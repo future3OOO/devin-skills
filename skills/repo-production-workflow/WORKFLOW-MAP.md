@@ -217,7 +217,7 @@ the state lock serializes state writers, not the filesystem.
 This section is the canonical operational documentation for hook behavior.
 `~/.config/devin/config.json` and the hook scripts remain the executable Interface:
 where they disagree with this table, the code is correct and the table is the
-defect. `CLAUDE.md` §9 keeps only the facts that change lead action each
+defect. `AGENTS.md` §9 keeps only the facts that change lead action each
 session and defers the rest here.
 
 | Hook | Role |

@@ -1,6 +1,6 @@
 # Boundary strategies under the canonical mock ban
 
-The canonical mock-ban statement lives in `CLAUDE.md` and governs every claimed RED/GREEN or production proof. This reference does not restate or weaken it.
+The canonical mock-ban statement lives in `AGENTS.md` and governs every claimed RED/GREEN or production proof. This reference does not restate or weaken it.
 
 Use the closest real production Interface available:
 

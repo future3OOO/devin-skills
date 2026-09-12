@@ -101,7 +101,7 @@ review on the new head.
 lands in `$DEVIN_ESTATE_HOME/state`, or `~/.config/devin/state`. Everything the workflow
 writes follows that root — repository state, producer evidence, locks, Stop and
 session records, advisor pointers. Nothing else moves: skills, hooks,
-`CLAUDE.md`, and Claude's own sessions are unaffected, and state already written
+`AGENTS.md`, and Devin's own sessions are unaffected, and state already written
 elsewhere stays there.
 
 Each process reads the variable from its own environment, so export it before
@@ -123,7 +123,7 @@ workflow state, at the cost of splitting audit history across roots.
 
 ## External dependencies
 
-This estate is **not self-contained**. `CLAUDE.md` mandates these tools and the
+This estate is **not self-contained**. `AGENTS.md` mandates these tools and the
 hooks refuse work without them, but none of them live here. Install it onto a
 machine without them and the estate bricks itself: `rcf-intake-gate.py`
 blocks every code edit until a Repo Context Forge intake and a fresh GitNexus
@@ -176,7 +176,7 @@ to `~/.config/devin/mcp_config.json`. `gitnexus` and `fff` are declared there;
 project-local servers belong in each repo's `.devin/mcp_config.json`.
 
 Neither GitNexus nor fff has a skill — GitNexus is used directly as
-`mcp__gitnexus__*` tools under the `CLAUDE.md` §9 workflow, and fff as
+`mcp__gitnexus__*` tools under the `AGENTS.md` §9 workflow, and fff as
 `mcp__fff__*`. Only Repo Context Forge has a skill, and that skill is a shim
 that shells out to its separate repo.
 

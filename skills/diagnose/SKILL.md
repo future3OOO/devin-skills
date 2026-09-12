@@ -11,7 +11,7 @@ When exploring the codebase, use the project's domain glossary to get a clear me
 
 ## Iron Law
 
-The canonical root-cause-first gate in `CLAUDE.md` governs entry to a fix; this
+The canonical root-cause-first gate in `AGENTS.md` governs entry to a fix; this
 skill owns the reproduction, tracing, and hypothesis procedure.
 
 Seeing the symptom is not root cause. A stack trace line, failing assertion, or bad final state is the starting point. Trace the failure back to the original trigger before proposing code changes.

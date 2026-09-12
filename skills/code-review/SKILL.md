@@ -35,7 +35,7 @@ bootstrap, or record anything: the lead's pass owns them.
 
 Use `code-quality` for the seven quality principles and `codebase-design` for
 Module/Interface/Seam judgement. Apply the canonical mock, imaginary-risk, and
-root-cause invariants from `CLAUDE.md`.
+root-cause invariants from `AGENTS.md`.
 
 Carry this smell baseline as judgement calls: Mysterious Name, Duplicated Code,
 Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun

@@ -102,8 +102,8 @@ Instruction files don't govern agents; enforced transactions do. Write the proce
 5. [`workflow.py tdd`](../../skills/repo-production-workflow/scripts/workflow.py) - the runner: executes RED/GREEN and binds both to the same behavior, command, and Seam
 6. [`workflow.py record-review`](../../skills/repo-production-workflow/scripts/workflow.py) - the recorder: validates every finding and disposition before review advances
 7. [`skills/codex-advisor/scripts/ask-codex-advisor.sh`](../../skills/codex-advisor/scripts/ask-codex-advisor.sh) - the advisor wrapper: read-only live-evidence consult, producer-recorded result, exact terminal verdict
-8. [`settings.json`](../../settings.json) - where the hooks are registered
-9. [`CLAUDE.md`](../../CLAUDE.md) - the canonical hard invariants: real-Seam proof, demonstrated risk, root-cause first
+8. [`config.json`](../../config.json) - where the hooks are registered
+9. [`AGENTS.md`](../../AGENTS.md) - the canonical hard invariants: real-Seam proof, demonstrated risk, root-cause first
 10. [`skills/tdd/mocking.md`](../../skills/tdd/mocking.md) - real boundary strategies and the honest proof-gap rule
 
 ## Open questions
