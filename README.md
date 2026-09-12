@@ -1,16 +1,17 @@
-# claude-skills
+# devin-skills
 
-Version-controlled source for the governed Claude Code agent estate. The
-tracked files on `main` are authoritative; `~/.claude/` is the installed copy.
-Machine-managed files that are not tracked here, such as HerdR's generated
-session hook, must survive an install.
+Version-controlled source for the governed Devin agent estate. The
+tracked files on `main` are authoritative; `~/.config/devin/` is the installed copy.
+Machine-managed files and config keys that are not tracked here must survive
+an install — the installer merges rather than overwrites.
 
 | Repo path | Live path |
 | --- | --- |
-| `CLAUDE.md` | `~/.claude/CLAUDE.md` — global rules |
-| `skills/` | `~/.claude/skills/` |
-| `settings.json` | `~/.claude/settings.json` — permissions, model, hooks, effort |
-| `hooks/` | `~/.claude/hooks/` — the gates settings.json wires up |
+| `AGENTS.md` | `~/.config/devin/AGENTS.md` — global rules |
+| `skills/` | `~/.config/devin/skills/` |
+| `config.json` | merged into `~/.config/devin/config.json` — permissions, hooks, imports |
+| `mcp_config.json` | `~/.config/devin/mcp_config.json` — MCP servers |
+| `hooks/` | `~/.config/devin/hooks/` — the gates config.json wires up |
 
 Development tests stay in GitHub and the complete mirror. All installs exclude
 `hooks/tests/`, `skills/codex-advisor/tests/`, and
@@ -35,193 +36,44 @@ there is no Stop hook. `skills/repo-production-workflow/WORKFLOW-MAP.md` owns th
 
 ## Code-review delegate
 
-Edit `model` (currently `claude-opus-5`) and `effort` (`xhigh`) in
+Edit `model` (currently `opus`) in
 [`skills/code-review/SKILL.md`](skills/code-review/SKILL.md); keep the other
-frontmatter. Publish, install to `~/.claude/skills/code-review/SKILL.md`, and
-restart existing sessions. Step 10 uses the same configuration.
+frontmatter (`agent: subagent_general` runs the skill as its own subagent
+context). Publish, install to `~/.config/devin/skills/code-review/SKILL.md`, and
+restart existing sessions.
 
-Normal Claude needs allowance for that model; Claude X needs its proxy to serve
-it with the requested effort. On Claude Code 2.1.251+, the skill pin overrides
-Claude X's default subagent model; leave `CLAUDE_CODE_SUBAGENT_MODEL_FORCE`
-unset. Confirm model/effort in execution receipts, including the upstream
-request when proxied. The Codex Advisor is configured separately.
+Devin resolves `model:` through its own model router; confirm the executed model
+in harness receipts. There is no per-skill effort pin under Devin — thinking
+level is session-level (`Alt+T`). The Codex Advisor is configured separately.
 
 ## Install or update
 
-Install a pinned remote `main` snapshot, then fast-forward the mirror after
-verification. Review live differences before overwriting them; reconcile
-intentional machine changes into tracked configuration first.
-Run the blocks in order in one dedicated Bash session; command failures stop
-the session. Reconcile reported differences before continuing.
+Review live differences first; the installer backs up and merges, it does not
+clobber machine-owned keys (`org_id`, `agent`, `shell`, `theme_mode`).
 
 ```bash
-set -euo pipefail
-mirror="$PWD"
-git fetch origin
-revision=$(git rev-parse origin/main)
-snapshot=$(mktemp -d)
-git archive "$revision" | tar -x -C "$snapshot"
-cd "$snapshot"
-for path in settings.json CLAUDE.md; do
-  if [[ -e "$HOME/.claude/$path" || -L "$HOME/.claude/$path" ]]; then
-    diff -u "$path" "$HOME/.claude/$path" || test "$?" -eq 1
-  else
-    printf 'New live file: %s\n' "$path"
-  fi
-done
+cd ~/projects/devin-skills
+./install.sh
 ```
 
-After reconciliation, back up and retire matching test copies. The snapshot
-contains only files tracked at `$revision`; mismatches stop before any move.
-Unknown files stay in place and must be reconciled if the absence check fails.
-
-```bash
-backup="$HOME/.claude-backups/$(date +%Y%m%d-%H%M%S)"
-mkdir -p "$backup" ~/.claude
-for path in CLAUDE.md settings.json hooks skills; do
-  if [[ -e "$HOME/.claude/$path" || -L "$HOME/.claude/$path" ]]; then
-    cp -a "$HOME/.claude/$path" "$backup/"
-  fi
-done
-excluded_tests=(hooks/tests skills/codex-advisor/tests skills/production-code/scripts/test_code_quality_gate.py)
-runtime_excludes=()
-for path in "${excluded_tests[@]}"; do runtime_excludes+=(--exclude="/$path"); done
-python3 - "$snapshot" "$backup/retired-tests" "${excluded_tests[@]}" <<'PY'
-from pathlib import Path
-import sys
-
-source, retired = map(Path, sys.argv[1:3])
-live = Path.home() / ".claude"
-moves = []
-for name in sys.argv[3:]:
-    target = source / name
-    for original in sorted(target.rglob("*")) if target.is_dir() else [target]:
-        if not original.is_file():
-            continue
-        installed = live / original.relative_to(source)
-        if installed.is_symlink():
-            sys.exit(f"Reconcile symlink: {installed}")
-        if not installed.exists():
-            continue
-        if not installed.is_file() or installed.read_bytes() != original.read_bytes():
-            sys.exit(f"Reconcile changed file: {installed}")
-        moves.append(installed)
-        if installed.suffix == ".py":
-            moves.extend((installed.parent / "__pycache__").glob(installed.stem + ".*.pyc"))
-            moves.extend(installed.parent.glob(installed.name + "c"))
-for installed in moves:
-    if any(parent.is_symlink() for parent in installed.parents):
-        sys.exit(f"Reconcile symlink directory: {installed}")
-for installed in moves:
-    destination = retired / installed.relative_to(live)
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    installed.rename(destination)
-for name in sys.argv[3:]:
-    target = live / name
-    if target.is_dir():
-        for directory in sorted(target.rglob("*"), reverse=True) + [target]:
-            if directory.is_dir() and not directory.is_symlink() and not any(directory.iterdir()):
-                directory.rmdir()
-PY
-```
-
-Only continue after retirement succeeds. Install without deleting machine additions:
-
-```bash
-rsync -a "${runtime_excludes[@]}" hooks skills ~/.claude/
-cp CLAUDE.md ~/.claude/CLAUDE.md
-cp settings.json ~/.claude/settings.json
-chmod +x ~/.claude/hooks/*.py
-rm -f ~/.claude/hooks/codex-challenge-commit-gate.sh
-rm -f ~/.claude/hooks/repoforge-commit-gate.sh
-uv tool install ruff==0.16.2
-```
-
-The `ruff` install is part of the contract, not an optional extra: the per-edit
-quality hook lints every Python edit inside a repository checkout with `ruff check --isolated --select E9,F`
-(the same pinned scope CI enforces). Whenever the `ruff` launch fails — binary
-absent, non-executable, malformed, or any other launch error — the hook names
-the gap, `ruff could not run: python lint skipped`, on every Python edit until
-the install is fixed, and the quality gate still runs either way. `uv tool
-install` warns when its bin directory is not on `PATH`; run
-`uv tool update-shell` (then reopen the shell) if the notice persists after an
-install, because the hook resolves `ruff` through `PATH`.
-
-The two removed files are obsolete PR #2 commit gates. Their deletion is
-intentional. Do not use `--delete` for the directory copies: HerdR and other
-machine integrations may own additional live files. The cost of that choice is
-that a file renamed or deleted upstream is left behind in `~/.claude`, so every
-rename or deletion orphans the old name until someone retires it.
-
-The `chmod` covers `*.py` only. Every tracked top-level hook is Python, and the
-one live shell hook is registered as `bash '<path>' session`, so its executable
-bit is never read. Adding `*.sh` back would grant nothing to that hook and would
-re-arm every orphaned `.sh` on each install — the install would maintain the
-files it should be ignoring.
+`install.sh` backs up every managed live path to `~/.config/devin-backups/<ts>/`,
+rsyncs `hooks/` and `skills/` (minus the development-test exclusions), copies
+`AGENTS.md` and `mcp_config.json`, merges `permissions`, `hooks`, and
+`read_config_from` into the live `~/.config/devin/config.json`, expands `$HOME`
+in hook command paths, and marks `hooks/*.py` executable.
 
 Verify the installed estate itself, not only the checkout:
 
 ```bash
-python3 ~/.claude/skills/repo-production-workflow/scripts/workflow.py --help
-diff -u CLAUDE.md ~/.claude/CLAUDE.md
-diff -u settings.json ~/.claude/settings.json
-python3 - "${excluded_tests[@]}" <<'PY'
-from pathlib import Path
-import sys
-live = Path.home() / ".claude"
-remaining = [live / name for name in sys.argv[1:] if (live / name).exists() or (live / name).is_symlink()]
-remaining += list((live / "skills/production-code/scripts").rglob("test_code_quality_gate*.pyc"))
-if remaining:
-    sys.exit("Reconcile remaining tests:\n" + "\n".join(map(str, remaining)))
-PY
-rsync -rcni --delete "${runtime_excludes[@]}" --exclude='__pycache__' --exclude='*.pyc' hooks skills ~/.claude/
-find ~/.claude/hooks -maxdepth 1 -name '*.py' ! -perm -u+x
+python3 ~/.config/devin/skills/repo-production-workflow/scripts/workflow.py --help
+diff -u AGENTS.md ~/.config/devin/AGENTS.md
+python3 -c "import json; print(sorted(json.load(open('$HOME/.config/devin/config.json'))['hooks']))"
+find ~/.config/devin/hooks -maxdepth 1 -name '*.py' ! -perm -u+x
 ```
 
-Stop if the absence check fails; `find` must print nothing. The checksum
-comparison is a dry run (`-n`): `--delete` only lists extra live files for ownership review; never remove
-`-n`. Reconcile every content difference and classify each `*deleting` entry
-below, preserving machine-owned files. Run development suites from a source
-checkout when needed; `--help` confirms launchability, not full behavior.
-
-After successful installation and reconciliation, fast-forward the clean mirror
-to the installed revision without filtering its files:
-
-```bash
-cd "$mirror"
-git switch main
-git merge --ff-only "$revision"
-rm -rf "$snapshot"
-```
-
-Absence from the checkout does not make a file an orphan. `herdr-agent-state.sh`
-is absent and live, and because the install never deletes, `~/.claude/hooks/`
-also keeps files this repo has never tracked. Classify each unexplained
-`*deleting` entry by positive evidence, in this order:
-
-- a path named in `settings.json` is live, whatever the checkout holds;
-- a path this repo tracked and then removed is an orphan of that rename or
-  deletion, unless an integration has since claimed it;
-  `git log --all --diff-filter=D -- hooks/<name>` names the removing commit,
-  which is this repo's history rather than current ownership;
-- anything else has an owner you have not identified yet. Leave it in place
-  until you have, because a machine integration may invoke its own file
-  without registering that path here.
-
-Retire orphans rather than leaving them, because an orphan keeps its executable
-bit and `ls` does not distinguish it from a live hook. PR #55 renamed seven
-python-shebang files and orphaned all seven at once.
-
-```bash
-mv ~/.claude/hooks/<old-file> ~/.claude/hooks/<old-file>.deprecated
-chmod -x ~/.claude/hooks/<old-file>.deprecated
-```
-
-`<old-file>` is the whole existing name, whatever its extension: `.sh`, `.py`,
-or none. Append; do not prefix. A prefixed file keeps its original extension and
-still matches `*.sh` or `*.py`, while an appended one matches neither. Delete
-the retired files once the replacements have carried a full session, and expect
-them in the hooks diff until then.
+`find` must print nothing. Then verify inside a Devin session: `/hooks` lists
+the four estate entries (PreToolUse, PostToolUse, SessionStart, PostCompaction)
+and skills resolve from `~/.config/devin/skills/`.
 
 ## Scoped install from a non-`main` branch
 
@@ -245,8 +97,8 @@ review on the new head.
 
 ## Workflow state root
 
-`CLAUDE_WORKFLOW_STATE_ROOT` selects where workflow state is stored; otherwise it
-lands in `$CLAUDE_HOME/state`, or `~/.claude/state`. Everything the workflow
+`DEVIN_WORKFLOW_STATE_ROOT` selects where workflow state is stored; otherwise it
+lands in `$DEVIN_ESTATE_HOME/state`, or `~/.config/devin/state`. Everything the workflow
 writes follows that root — repository state, producer evidence, locks, Stop and
 session records, advisor pointers. Nothing else moves: skills, hooks,
 `CLAUDE.md`, and Claude's own sessions are unaffected, and state already written
@@ -256,11 +108,11 @@ Each process reads the variable from its own environment, so export it before
 launching or resuming and reuse the same root for the whole pass.
 
 ```bash
-export CLAUDE_WORKFLOW_STATE_ROOT="$HOME/.claude-state-roots/agent-a"
-mkdir -p "$CLAUDE_WORKFLOW_STATE_ROOT" && chmod 700 "$CLAUDE_WORKFLOW_STATE_ROOT"
-claude
+export DEVIN_WORKFLOW_STATE_ROOT="$HOME/.config/devin-state-roots/agent-a"
+mkdir -p "$DEVIN_WORKFLOW_STATE_ROOT" && chmod 700 "$DEVIN_WORKFLOW_STATE_ROOT"
+devin
 # later, in a new shell: export the same root again, then
-claude --resume
+devin -r <session-id>
 ```
 
 `prune --apply` deletes from whichever root is selected, so check the variable
@@ -277,13 +129,9 @@ machine without them and the estate bricks itself: `rcf-intake-gate.py`
 blocks every code edit until a Repo Context Forge intake and a fresh GitNexus
 index exist, and neither tool would be present to produce one.
 
-HerdR also manages `~/.claude/hooks/herdr-agent-state.sh` and may overwrite it
-when its Claude integration is reinstalled or upgraded. The tracked settings
-register that hook, but this repository deliberately does not copy the
-generated file. Reinstalling the integration may also rewrite that
-`SessionStart` settings entry, so reconcile it before the next tracked install.
-This estate was last verified with HerdR `0.7.5` and Claude integration version
-`7`.
+Other tools may drop files into `~/.config/devin/` outside this repo's
+management; the installer's backup-and-merge keeps them. Reconcile unexpected
+live files rather than deleting them.
 
 SHAs are what this estate was last verified against, not minimums.
 
@@ -323,17 +171,9 @@ independently, so verify they agree:
 readlink -f "$(command -v gitnexus)"     # must equal the MCP's args[0]
 ```
 
-**MCP config is not mirrored.** `gitnexus` and `fff` are declared in
-`~/.claude.json`, which also holds `accountUuid`, `emailAddress` and usage
-telemetry, so it is deliberately not committed. Recreate the two entries by
-hand:
-
-```json
-"gitnexus": {"type":"stdio","command":"node",
-  "args":["/home/prop_/projects/GitNexus-pr1-review/gitnexus/dist/cli/index.js","mcp"],"env":{}},
-"fff": {"type":"stdio","command":"/home/prop_/.local/bin/fff-mcp",
-  "args":["--no-update-check"],"env":{}}
-```
+**MCP config is tracked** in [`mcp_config.json`](mcp_config.json) and installs
+to `~/.config/devin/mcp_config.json`. `gitnexus` and `fff` are declared there;
+project-local servers belong in each repo's `.devin/mcp_config.json`.
 
 Neither GitNexus nor fff has a skill — GitNexus is used directly as
 `mcp__gitnexus__*` tools under the `CLAUDE.md` §9 workflow, and fff as
@@ -342,9 +182,11 @@ that shells out to its separate repo.
 
 ## Notes
 
-- `settings.json` hardcodes absolute paths under `/home/prop_`, so it is the
+- `config.json` hardcodes absolute paths under `/home/prop_`, so it is the
   tracked configuration for this machine rather than a portable default.
-- `~/.claude/settings.local.json` is deliberately **not** mirrored: it is the
+- `~/.config/devin/config.local.json` is deliberately **not** mirrored: it is the
   machine-local override and may hold credentials.
+- The advisor delegate still invokes `claude -p` headless; Claude Code remains
+  installed for that purpose only. Nothing else in this estate reads `~/.claude`.
 - A sibling `~/projects/codex-skills` mirrors the Codex estate the same way
   (`~/.codex/skills/` plus `AGENTS.md`); sync both after cross-estate changes.

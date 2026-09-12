@@ -15,7 +15,7 @@ debug, refactor, explain, or plan work in a git repository.
 Governed production pass (an active workflow exists):
 
 ```bash
-python3 "$HOME/.claude/skills/repo-context-forge/scripts/bootstrap.py" \
+python3 "$HOME/.config/devin/skills/repo-context-forge/scripts/bootstrap.py" \
   --repo "$PWD" --workflow-slug "<active-pass-slug>" --intent "<user request>"
 ```
 
@@ -35,7 +35,7 @@ and must not pass `--workflow-slug`, which would be refused with no active
 workflow to match:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-context-forge/scripts/bootstrap.py" \
+python3 "$HOME/.config/devin/skills/repo-context-forge/scripts/bootstrap.py" \
   --repo "$PWD" --intent "<user request>"
 ```
 
@@ -43,7 +43,7 @@ Standalone exploration or review with no governed pass and no described work —
 `repo` mode on a clean checkout, `local` mode when the worktree is dirty:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-context-forge/scripts/bootstrap.py" --repo "$PWD"
+python3 "$HOME/.config/devin/skills/repo-context-forge/scripts/bootstrap.py" --repo "$PWD"
 ```
 
 2. Treat the script output as the initial repository context packet for the
@@ -199,7 +199,7 @@ For this post-edit call, the source checkout's absolute path overrides the packe
 `repo` set to that path (`git rev-parse --show-toplevel`) and
 `scope: "unstaged"`. Treat `.gitnexus/` as a local index artifact kept out of
 commits. Remove unintended
-`.claude/skills/gitnexus/` and `.gitignore` changes before finalizing;
+`.agents/skills/gitnexus/` and `.gitignore` changes before finalizing;
 `gitnexus clean --force` removes only the index and registry entry, not those
 changes.
 

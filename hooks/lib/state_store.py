@@ -32,8 +32,8 @@ DOC_SUFFIXES = {".md", ".markdown", ".rst", ".adoc"}
 SCRATCH_PARTS = {"scratchpad", ".scratch", ".gitnexus"}
 
 
-def claude_home() -> Path:
-    return Path(os.environ.get("CLAUDE_HOME", Path.home() / ".claude")).expanduser()
+def estate_home() -> Path:
+    return Path(os.environ.get("DEVIN_ESTATE_HOME", Path.home() / ".config" / "devin")).expanduser()
 
 
 def secure_dir(path: Path) -> Path:
@@ -43,8 +43,8 @@ def secure_dir(path: Path) -> Path:
 
 
 def state_root() -> Path:
-    override = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-    return secure_dir(Path(override).expanduser() if override else claude_home() / "state")
+    override = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+    return secure_dir(Path(override).expanduser() if override else estate_home() / "state")
 
 
 def repo_state_dir(identity: RepoIdentity) -> Path:

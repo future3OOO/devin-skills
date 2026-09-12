@@ -13,7 +13,7 @@ A RED is valid only when the failure is the mapped product failure - the declare
 
 An **attack vector test (ACT)** is the production test: drive the real production Interface, state the expected result, and compare it with the observed one; for a bug, reproduce and trace it before editing. Reuse an existing check when it reaches the behavior; add one only for distinct coverage the ACT does not establish. A runner-backed ACT (directly invoked pytest or unittest) lets the recorder establish reach from the runner's own report of the executed test's failure. A non-runner ACT - the product's CLI, a script, an end-to-end operation - opens its item's RED when it fails carrying the declared failure, and the recorder records its reach as unresolved: review establishes that the observed failure is the mapped promise. Matching output alone never establishes behavior. Either verdict is a bounded reading of the output - evidence the lead verifies, not an attestation, because the ledger is continuity. Do not manufacture a second test path or rewrite a real production failure into a marker assertion.
 
-The canonical mock ban in `~/.claude/CLAUDE.md` applies without exception. This skill never creates a test-only proof path.
+The canonical mock ban in `~/.config/devin/AGENTS.md` applies without exception. This skill never creates a test-only proof path.
 
 Before selecting the first slice, read [tests.md](tests.md). Before naming a RED whose correctness depends on transaction, filesystem, process, protocol, concurrency, timing, or serialization semantics, read [mocking.md](mocking.md).
 
@@ -56,14 +56,14 @@ Select one pending contract ID and write its RED before the production edit that
 
 - Write one test for that atomic behavior through its recorded Seam.
 - Fail with the item's declared `redFailure` only where the product outcome is absent: the assertion's behavior-specific marker, or the product's own exception or diagnostic.
-- Run `python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd --repo "$PWD" --slug <task> --phase red --behavior-id <ID> -- <targeted-command>`.
+- Run `python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd --repo "$PWD" --slug <task> --phase red --behavior-id <ID> -- <targeted-command>`.
 - A passing runner run baselines the item; do not manufacture a RED or edit production code for it.
 - A preservation RED records like any other RED. After implementation a preservation item goes RED only when the real Seam shows the change regressed it.
 
 **GREEN**
 
 - Write the smallest production change that passes the same test surface.
-- Run `python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd --repo "$PWD" --slug <task> --phase green --behavior-id <ID> -- <same-test-surface>`.
+- Run `python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd --repo "$PWD" --slug <task> --phase green --behavior-id <ID> -- <same-test-surface>`.
 - Do not implement unrelated future features; affected guarantees and known defects belong to this repair, and one coherent edit may satisfy several recorded REDs.
 
 **ORDER OF PROOF**
@@ -77,7 +77,7 @@ Several assertions may jointly prove one behavior; every assertion participating
 GREEN exposes implementation consequences. When one reveals a new load-bearing mechanism, a touched-Seam preservation or interaction behavior, or a defect, add the item before the next production edit; when it reveals nothing, record nothing. Pass the document on stdin instead of a scratch file:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   tdd-map --repo "$PWD" --slug <task> --workflow-id <active-workflowId> --input - <<'JSON'
 {"sourceBehaviorId": "BM_...", "reassessment": "...", "items": [...]}
 JSON

@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Iterator, NoReturn, Sequence
 from .preflight_document import validate_document
 from .repo_identity import RepoIdentity
-from .state_store import _active_candidate_tree, claude_home, read_json, repo_state_dir, utc_timestamp
+from .state_store import _active_candidate_tree, estate_home, read_json, repo_state_dir, utc_timestamp
 DATABASE_NAME = "workflow.sqlite3"
 DATABASE_FILES = frozenset({DATABASE_NAME, *(f"{DATABASE_NAME}{suffix}" for suffix in ("-journal", "-wal", "-shm"))})
 AUTHORITY = "sqlite-event-ledger-v1"
@@ -95,8 +95,8 @@ def manifest_write(
         document,
     )
 def database_path(identity: RepoIdentity) -> Path:
-    override = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-    root = Path(override).expanduser() if override else claude_home() / "state"
+    override = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+    root = Path(override).expanduser() if override else estate_home() / "state"
     return root / identity.key / DATABASE_NAME
 def _store_exists(identity: RepoIdentity) -> bool:
     path = database_path(identity)

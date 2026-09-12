@@ -139,7 +139,7 @@ class RepoForgeWorkflowTests(unittest.TestCase):
         marker = "SHA256_WORKFLOW_NOT_READY"
         repo = self.tmp / "sha256-repo"
         repo.mkdir()
-        env = self.env | {"CLAUDE_WORKFLOW_STATE_ROOT": str(self.tmp / "sha256-state")}
+        env = self.env | {"DEVIN_WORKFLOW_STATE_ROOT": str(self.tmp / "sha256-state")}
 
         def git(*args: str) -> str:
             result = subprocess.run(
@@ -202,7 +202,7 @@ class RepoForgeWorkflowTests(unittest.TestCase):
 
     def test_corrupt_authoritative_ledger_refuses_before_the_bootstrap_runs(self) -> None:
         state = self.status()
-        database = (Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"])
+        database = (Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"])
                     / str(state["repo"]["key"]) / "workflow.sqlite3")
         connection = sqlite3.connect(database)
         try:
@@ -234,7 +234,7 @@ class RepoForgeWorkflowTests(unittest.TestCase):
         state = self.status()
         self.assertEqual(state["repoContextForge"], "passed")
         self.assertEqual(state["phase"], "repo-context-forge")
-        state_dir = Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"])
+        state_dir = Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"])
         self.assertFalse(any(path.name in {"packets", "repoforge"} for path in state_dir.rglob("*")))
 
         output = self.tmp / "packet.txt"
@@ -318,7 +318,7 @@ class RepoForgeWorkflowTests(unittest.TestCase):
         self.assertTrue(json.loads(checkpoint.stdout)["ready"], marker + ": " + checkpoint.stdout)
 
     def ledger_bytes(self, state: dict[str, object]) -> bytes:
-        return (Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"])
+        return (Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"])
                 / str(state["repo"]["key"]) / "workflow.sqlite3").read_bytes()
 
     def test_an_unresolved_producer_result_refuses_and_mutates_nothing(self) -> None:

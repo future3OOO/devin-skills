@@ -24,7 +24,7 @@ from ._workflow_db import (
     apply_retention,
     retention_inventory,
 )
-from .state_store import _flock, claude_home, read_json
+from .state_store import _flock, estate_home, read_json
 
 # Measured review chains commonly span two to four passes, against a current
 # worst-case accumulation of fourteen. One owner for the constant, by contract.
@@ -476,8 +476,8 @@ def prune(root: Path | None = None, *, apply: bool = False) -> dict[str, object]
     if root is None:
         # Resolved the way state_root() does, minus its secure_dir call: that
         # helper creates what it returns, and reporting must never do that.
-        override = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-        root = Path(override).expanduser() if override else claude_home() / "state"
+        override = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+        root = Path(override).expanduser() if override else estate_home() / "state"
     slots: list[dict[str, object]] = []
     if not root.is_dir():
         return {"root": str(root), "applied": apply, "slots": slots}

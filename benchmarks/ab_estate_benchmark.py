@@ -198,11 +198,11 @@ def declared_estates(settings: Path) -> set[Path]:
 
 def monitored(source: Path) -> tuple[list[Path], list[Path]]:
     """Every estate and state root this run must leave untouched, and their state roots."""
-    installed = Path.home() / ".claude"
-    homes = {installed, Path(os.environ.get("CLAUDE_HOME", installed)).expanduser()}
+    installed = Path.home() / ".config" / "devin"
+    homes = {installed, Path(os.environ.get("DEVIN_ESTATE_HOME", installed)).expanduser()}
     homes |= declared_estates(source / "settings.json")
     roots = {home / "state" for home in homes}
-    if override := os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT"):
+    if override := os.environ.get("DEVIN_WORKFLOW_STATE_ROOT"):
         roots.add(Path(override).expanduser())
     return sorted(homes), sorted(roots)
 
@@ -269,9 +269,9 @@ def project_settings(clone: Path, home: Path) -> None:
 
 
 def arm_env(root: Path, state_root: Path) -> dict[str, str]:
-    # HOME as well as CLAUDE_HOME: the estate's claude_home() falls back to Path.home().
+    # HOME as well as DEVIN_ESTATE_HOME: the estate's estate_home() falls back to Path.home().
     return {**os.environ, "HOME": str(root), "CLAUDE_CONFIG_DIR": str(root / "home"),
-            "CLAUDE_HOME": str(root / "home"), "CLAUDE_WORKFLOW_STATE_ROOT": str(state_root),
+            "DEVIN_ESTATE_HOME": str(root / "home"), "DEVIN_WORKFLOW_STATE_ROOT": str(state_root),
             "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_SYSTEM": os.devnull,
             "PYTHONDONTWRITEBYTECODE": "1"}
 

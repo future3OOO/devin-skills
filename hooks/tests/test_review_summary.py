@@ -33,11 +33,11 @@ class ReviewSummaryHarness(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="review-summary-"))
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
-        self.previous_state_root = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
+        self.previous_state_root = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
         self.env = os.environ.copy()
         self.env.update({
-            "CLAUDE_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
+            "DEVIN_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
             "GIT_CONFIG_GLOBAL": os.devnull,
             "GIT_CONFIG_SYSTEM": os.devnull,
             "PYTHONDONTWRITEBYTECODE": "1",
@@ -92,9 +92,9 @@ class ReviewSummaryHarness(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.previous_state_root is None:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         else:
-            os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = self.previous_state_root
+            os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = self.previous_state_root
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def run_script(self, script: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -308,14 +308,15 @@ class ReviewSummaryTests(ReviewSummaryHarness):
         for name, shape in shapes.items():
             self.assertIn(f"| `{name}` | {shape} |", table, marker)
             self.assertEqual(f"| `{name}` | {shape} |".count("|"), 3, "DOCUMENT_SHAPE_TABLE_HAS_EXTRA_COLUMN")
-        command = 'python3 -I -c \'import sys; from pathlib import Path; sys.path.insert(0, str(Path.home() / ".claude")); from hooks.lib.workflow_documents import DOCUMENT_SHAPE_TABLE; print(DOCUMENT_SHAPE_TABLE)\''
+        command = 'python3 -I -c \'import sys; from pathlib import Path; sys.path.insert(0, str(Path.home() / ".config" / "devin")); from hooks.lib.workflow_documents import DOCUMENT_SHAPE_TABLE; print(DOCUMENT_SHAPE_TABLE)\''
         delegate_prompt = (ROOT / "skills/code-review/SKILL.md").read_text(encoding="utf-8")
         self.assertNotIn(command, delegate_prompt, "DELEGATE_PROMPT_CARRIES_LEAD_RECORDING")
         for relative in ("skills/codex-advisor/SKILL.md", "skills/repo-production-workflow/SKILL.md"):
             text = (ROOT / relative).read_text(encoding="utf-8")
             self.assertIn(command, text, "AUTHOR_TABLE_COMMAND_USED_CALLER_PATH")
             self.assertNotIn("| `fixed` |", text, marker)
-        (self.tmp / ".claude").symlink_to(ROOT, target_is_directory=True)
+        (self.tmp / ".config").mkdir()
+        (self.tmp / ".config" / "devin").symlink_to(ROOT, target_is_directory=True)
         rendered = subprocess.run(["python3", "-I", "-c", command.removeprefix("python3 -I -c '").removesuffix("'")], cwd=self.repo, env={**os.environ, "HOME": str(self.tmp)},
             text=True, capture_output=True, check=False)
         self.assertEqual((rendered.returncode, rendered.stdout.strip()), (0, table), "AUTHOR_TABLE_COMMAND_USED_CALLER_PATH" + rendered.stderr)

@@ -250,7 +250,7 @@ Record a non-empty JSON array. Every item has these eight required fields:
 ## Recording
 
 In the governed workflow this preflight records only through
-`python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" record-preflight --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" --input "/path/to/preflight.json"`, which demands the full thirteen text sections plus `behaviorMap`
+`python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" record-preflight --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" --input "/path/to/preflight.json"`, which demands the full thirteen text sections plus `behaviorMap`
 as JSON (every text section non-empty, `openQuestions` exactly `none`) and refuses
 without mutating state. Write the document to a file and pass it with
 `--input`; response prose is not evidence.

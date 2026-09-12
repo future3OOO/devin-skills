@@ -26,8 +26,18 @@ def edited_path(payload: dict[str, object]) -> Path | None:
 
 
 def working_directory(payload: dict[str, object]) -> str:
-    value = payload.get("cwd")
-    return value if isinstance(value, str) and value else os.getcwd()
+    """Working directory across hook transports.
+
+    Payloads may carry `cwd` or `working_directory`; Devin always sets the
+    `DEVIN_PROJECT_DIR` environment variable for hook commands. Falls back to
+    the hook's own process cwd.
+    """
+    for key in ("cwd", "working_directory"):
+        value = payload.get(key)
+        if isinstance(value, str) and value:
+            return value
+    env = os.environ.get("DEVIN_PROJECT_DIR")
+    return env if env else os.getcwd()
 
 
 def session_key(payload: dict[str, object]) -> str | None:

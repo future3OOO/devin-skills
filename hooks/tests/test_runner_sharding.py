@@ -35,7 +35,7 @@ class RunnerAttack(unittest.TestCase):
                    budget: int = BUDGET, home: str | None = None) -> tuple[subprocess.CompletedProcess[str], float]:
         env = {**os.environ, "HOOKS_TEST_WORKERS": str(workers), "PYTHONDONTWRITEBYTECODE": "1"}
         if home is not None:
-            env["CLAUDE_HOME"] = home
+            env["DEVIN_ESTATE_HOME"] = home
         started = time.monotonic()
         try:
             result = subprocess.run(
@@ -319,7 +319,7 @@ class ProbeTreeTests(RunnerAttack):
 
     def test_two_jobs_of_one_run_get_two_homes(self) -> None:
         """Jobs run at the same time, so the runner owns each job's estate state
-        rather than requiring its caller to leave CLAUDE_HOME alone."""
+        rather than requiring its caller to leave DEVIN_ESTATE_HOME alone."""
         marker = "RUNNER_SHARED_ONE_HOME_ACROSS_JOBS"
         tree = self.probe_tree(
             marker,
@@ -328,8 +328,8 @@ class ProbeTreeTests(RunnerAttack):
             "class T(unittest.TestCase):\n"
             # Delimited: concurrent jobs share one pipe, so a newline is not a
             # boundary these values can be read back across.
-            "    def test_one(self): print('[JOB_HOME=' + os.environ['CLAUDE_HOME'] + ']')\n"
-            "    def test_two(self): print('[JOB_HOME=' + os.environ['CLAUDE_HOME'] + ']')\n",
+            "    def test_one(self): print('[JOB_HOME=' + os.environ['DEVIN_ESTATE_HOME'] + ']')\n"
+            "    def test_two(self): print('[JOB_HOME=' + os.environ['DEVIN_ESTATE_HOME'] + ']')\n",
         )
         caller = str(tree / "caller-home")
         result, _ = self.run_runner(

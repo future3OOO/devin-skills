@@ -95,7 +95,7 @@ class AdvisorDirectMeasurementTest(unittest.TestCase):
             repo = temporary / "repo"
             repo.mkdir()
             env = os.environ | {
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(temporary / "state"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(temporary / "state"),
                 "PYTHONPYCACHEPREFIX": str(temporary / "pycache"),
             }
             for command in (
@@ -196,7 +196,7 @@ class AdvisorDirectMeasurementTest(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, marker + "\n" + result.stdout + result.stderr)
             sid = next(
-                (Path(env["CLAUDE_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
+                (Path(env["DEVIN_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
             ).read_text(encoding="utf-8").strip()
             transcript = next(
                 (Path(env["HOME"]) / ".claude" / "projects").rglob(f"{sid}.jsonl")
@@ -236,7 +236,7 @@ class AdvisorSecurityBoundaryTest(unittest.TestCase):
             repo = temporary / "repo"
             repo.mkdir()
             env = os.environ | {
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(temporary / "state"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(temporary / "state"),
                 "PYTHONPYCACHEPREFIX": str(temporary / "pycache"),
             }
             for command in (
@@ -301,7 +301,7 @@ class AdvisorSecurityBoundaryTest(unittest.TestCase):
                 cwd=repo, env=env,
             )
             sid = next(
-                (Path(env["CLAUDE_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
+                (Path(env["DEVIN_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
             ).read_text(encoding="utf-8").strip()
             tools = advisor_tool_names(env, sid) if result.returncode == 0 else []
             return result, tools, hook_marker.exists()
@@ -314,7 +314,7 @@ class AdvisorSecurityBoundaryTest(unittest.TestCase):
             repo = temporary / "repo"
             repo.mkdir()
             env = os.environ | {
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(temporary / "state"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(temporary / "state"),
                 "PYTHONPYCACHEPREFIX": str(temporary / "pycache"),
             }
             for command in (
@@ -440,7 +440,7 @@ class AdvisorSecurityBoundaryTest(unittest.TestCase):
                 cwd=repo, env=env,
             )
             sid = next(
-                (Path(env["CLAUDE_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
+                (Path(env["DEVIN_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
             ).read_text(encoding="utf-8").strip()
             transcript = next(
                 (Path(env["HOME"]) / ".claude" / "projects").rglob(f"{sid}.jsonl")
@@ -572,7 +572,7 @@ class AdvisorSecurityBoundaryTest(unittest.TestCase):
             repo = Path(directory) / "repo"
             repo.mkdir()
             env = os.environ | {
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(Path(directory) / "state"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(Path(directory) / "state"),
                 "PYTHONPYCACHEPREFIX": str(Path(directory) / "pycache"),
             }
             run_checked(["git", "init", "-q"], cwd=repo, env=env)
@@ -586,7 +586,7 @@ class AdvisorSecurityBoundaryTest(unittest.TestCase):
                 cwd=repo, env=env,
             )
             sid = next(
-                (Path(env["CLAUDE_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
+                (Path(env["DEVIN_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions").glob("*.sid")
             ).read_text(encoding="utf-8").strip()
             tools = advisor_tool_names(env, sid)
         self.assertEqual(result.returncode, 0, marker + result.stdout + result.stderr)
@@ -603,7 +603,7 @@ class AdvisorConcurrentSessionTest(unittest.TestCase):
             repo = temporary / "repo"
             repo.mkdir()
             env = os.environ | {
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(temporary / "state"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(temporary / "state"),
                 "PYTHONPYCACHEPREFIX": str(temporary / "pycache"),
             }
             for command in (
@@ -640,7 +640,7 @@ class AdvisorConcurrentSessionTest(unittest.TestCase):
             self.assertEqual(forged.returncode, 0, forged.stdout + forged.stderr)
             state = json.loads(run_workflow("status", "--repo", str(repo), cwd=repo, env=env).stdout)
             sid_file = (
-                Path(env["CLAUDE_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions"
+                Path(env["DEVIN_WORKFLOW_STATE_ROOT"]) / "_advisor-sessions"
                 / f"{state['repo']['key']}-{slug}-{state['workflowId']}.sid"
             )
             common = [
@@ -785,8 +785,8 @@ class AdvisorPhaseLessPayloadContractTest(unittest.TestCase):
             packet.write_text("{}\n", encoding="utf-8")
             env = os.environ | {
                 "HOME": directory,
-                "CLAUDE_HOME": str(temporary / "claude"),
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(temporary / "state"),
+                "DEVIN_ESTATE_HOME": str(temporary / "claude"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(temporary / "state"),
             }
             for option in (("--packet", str(packet)), ("--base-ref", "HEAD")):
                 with self.subTest(option=option[0]):

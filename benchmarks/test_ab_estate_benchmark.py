@@ -29,7 +29,7 @@ class ABEstateBenchmarkTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp(prefix="ab-benchmark-"))
         self.clone = self.tmp / "source"
-        # CLAUDE_HOME deliberately points at a scratch directory, the way
+        # DEVIN_ESTATE_HOME deliberately points at a scratch directory, the way
         # hooks/tests/run.sh invokes the suite. Anchoring isolation on that variable
         # instead of the installed estate rewrote nothing and hashed an empty
         # directory, so the benchmark reported isolation it had not established.
@@ -40,7 +40,7 @@ class ABEstateBenchmarkTests(unittest.TestCase):
         self.env = {
             **os.environ,
             "HOME": str(self.tmp / "foreign-home"),
-            "CLAUDE_HOME": str(self.tmp / "scratch-home"),
+            "DEVIN_ESTATE_HOME": str(self.tmp / "scratch-home"),
             "GIT_CONFIG_GLOBAL": os.devnull,
             "GIT_CONFIG_SYSTEM": os.devnull,
             "PYTHONDONTWRITEBYTECODE": "1",
@@ -156,7 +156,7 @@ class ABEstateBenchmarkTests(unittest.TestCase):
         self.assertIn(declared, isolation["liveEstates"], "the declared estate went unmonitored")
         self.assertEqual(isolation["estateDigestBefore"][declared], isolation["estateDigestAfter"][declared])
         self.assertIn(str(Path(self.env["HOME"]) / ".claude"), isolation["liveEstates"])
-        self.assertIn(self.env["CLAUDE_HOME"], isolation["liveEstates"])
+        self.assertIn(self.env["DEVIN_ESTATE_HOME"], isolation["liveEstates"])
         for arm in (baseline, candidate):
             written = (Path(arm["home"]) / "settings.json").read_text(encoding="utf-8")
             self.assertNotIn(declared, written, "the arm settings still name the declared estate")
@@ -165,7 +165,7 @@ class ABEstateBenchmarkTests(unittest.TestCase):
     def test_an_out_path_inside_a_protected_root_is_refused_before_anything_is_deleted(self) -> None:
         # build_arm clears <out>/<arm> unconditionally, so an --out aimed at a live
         # estate destroys what is there before any isolation check has run.
-        protected = Path(self.env["CLAUDE_HOME"])
+        protected = Path(self.env["DEVIN_ESTATE_HOME"])
         (protected / "baseline").mkdir(parents=True)
         sentinel = protected / "baseline" / "sentinel.txt"
         sentinel.write_text("live data\n", encoding="utf-8")
@@ -217,7 +217,7 @@ class ABEstateBenchmarkTests(unittest.TestCase):
                          "arm keys are not derived from the fixture paths")
         key = sorted(expected)[0]
 
-        root = Path(self.env["CLAUDE_HOME"]) / "state"
+        root = Path(self.env["DEVIN_ESTATE_HOME"]) / "state"
         (root / "sessions" / "some-session").mkdir(parents=True, exist_ok=True)
         (root / "sessions" / "some-session" / f"{key}.json").write_text("{}\n", encoding="utf-8")
 
@@ -350,14 +350,14 @@ class ABEstateBenchmarkTests(unittest.TestCase):
         from the fixture path survive that, which is the whole point.
         """
         parent = self.run_git("rev-parse", "HEAD")
-        escape = Path(self.env["CLAUDE_HOME"]) / "state"
+        escape = Path(self.env["DEVIN_ESTATE_HOME"]) / "state"
         store = self.clone / "hooks" / "lib" / "state_store.py"
         original = store.read_text(encoding="utf-8")
         # arm_env passes through every variable it does not override, so the candidate's
         # real state_root() can be made to answer with a monitored root instead.
         perturbed = original.replace(
-            '    override = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")',
-            '    override = os.environ.get("BENCHMARK_ESCAPE_ROOT") or os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")')
+            '    override = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")',
+            '    override = os.environ.get("BENCHMARK_ESCAPE_ROOT") or os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")')
         self.assertNotEqual(perturbed, original, "the state_root override point moved")
         store.write_text(perturbed, encoding="utf-8")
         self.run_git("commit", "--quiet", "--all", "-m", "escape the arm state root")

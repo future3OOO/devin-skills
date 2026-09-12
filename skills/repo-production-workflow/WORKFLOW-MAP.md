@@ -38,7 +38,7 @@ flowchart LR
 
 ## State Interface
 
-One repository-scoped SQLite event ledger records accepted transitions, logical evidence, review manifests, and complete canonical resulting state. A disposable projection names the active workflow and latest event; reads repair it from the ledger when it is missing, dangling, or stale. See [Workflow state root](https://github.com/future3OOO/claude-skills/blob/main/README.md#workflow-state-root) for which root holds it.
+One repository-scoped SQLite event ledger records accepted transitions, logical evidence, review manifests, and complete canonical resulting state. A disposable projection names the active workflow and latest event; reads repair it from the ledger when it is missing, dangling, or stale. See [Workflow state root](../../README.md#workflow-state-root) for which root holds it.
 
 ```text
 workflow begin                 # assigns and activates a random workflowId
@@ -215,7 +215,7 @@ the state lock serializes state writers, not the filesystem.
 ## Hook roles
 
 This section is the canonical operational documentation for hook behavior.
-`~/.claude/settings.json` and the hook scripts remain the executable Interface:
+`~/.config/devin/config.json` and the hook scripts remain the executable Interface:
 where they disagree with this table, the code is correct and the table is the
 defect. `CLAUDE.md` §9 keeps only the facts that change lead action each
 session and defers the rest here.

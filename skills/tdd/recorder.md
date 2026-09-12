@@ -5,10 +5,10 @@ Use this reference only when governed workflow continuity is active. The recorde
 ## RED and GREEN
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd \
   --repo "$PWD" --slug "<task>" --phase red --behavior-id "BM_..." \
   -- <targeted-command>
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd \
   --repo "$PWD" --slug "<task>" --phase green --behavior-id "BM_..." \
   -- <targeted-command>
 ```
@@ -24,7 +24,7 @@ The recorder counts valid cycle-opening REDs only as a coarse granularity smell.
 `tdd-map` changes existing obligations or adds uncovered outcomes. A no-op writes nothing. Pass the document on stdin:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd-map \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd-map \
   --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" --input - <<'JSON'
 {"sourceBehaviorId": "BM_...", "reassessment": "what the proof exposed", "items": [...], "dispositions": [...]}
 JSON
@@ -49,7 +49,7 @@ Already fixed/report-only owners can obtain reassessment evidence without first 
 Use `--not-required` only when every map item is already satisfied or omitted by governing evidence:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd \
   --repo "$PWD" --slug "<task>" \
   --not-required "<specific reason no production behavior edit is required>"
 ```

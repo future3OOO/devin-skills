@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Integrated workflow verification. Tests are dealt across worker processes rather
 # than run one module at a time: each case builds its own scratch repository and
-# ledger, each job gets its own CLAUDE_HOME, and the Repo Context Forge wrapper
+# ledger, each job gets its own DEVIN_ESTATE_HOME, and the Repo Context Forge wrapper
 # serialises Repo Context Forge intakes, whose producers would otherwise tear
 # GitNexus's global registry. A direct gitnexus call stays outside that lock.
 #
@@ -22,7 +22,7 @@ run_job() {
   local home
   # Jobs run at the same time, so the runner owns each job's estate state.
   home="$(mktemp -d "$scratch/home-XXXXXX")"
-  export CLAUDE_HOME="$home"
+  export DEVIN_ESTATE_HOME="$home"
   case "$job" in
     *.sh) bash "$job" ;;
     *.py) python3 -u "$job" ;;

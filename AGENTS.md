@@ -1,6 +1,6 @@
 # Global Rules
 
-Global guidance for every Claude Code session. Project-specific `CLAUDE.md` files override these where they conflict.
+Global guidance for every Devin session. Project-specific `AGENTS.md` or `CLAUDE.md` files override these where they conflict.
 
 ## 1. Think Before Coding
 
@@ -82,45 +82,44 @@ Transform tasks into verifiable goals:
 
 For multi-step tasks, state a brief plan with explicit verification per step. Strong success criteria let you loop independently; weak criteria ("make it work") require constant clarification.
 
-For work on the claude-skills estate only, read
-`/home/prop_/projects/claude-skills/decisions.md` at start and after resume or
+For work on the devin-skills estate only, read
+`/home/prop_/projects/devin-skills/decisions.md` at start and after resume or
 compaction. Update decisions, reasons and status before reporting or handoff;
 mark superseded decisions. All worktrees share this local-only, Git-excluded file.
 
 ## 5. Quiet Windows And Scheduled Follow-Ups
 
-Do not handle quiet windows, review waits, deploy waits, or scheduled follow-ups with repeated passive `sleep` loops. Use Claude Code's dedicated tools instead.
+Do not handle quiet windows, review waits, deploy waits, or scheduled follow-ups with repeated passive `sleep` loops in the foreground. Run the wait as a backgrounded shell so the session stays responsive.
 
 When a rule requires waiting until a specific time:
 
 - Compute and state the exact deadline timestamp and current timestamp.
 - Compute the remaining wait in seconds.
-- Use `ScheduleWakeup` to resume at the deadline (one-shot pacing inside `/loop` dynamic mode), or use `Monitor` to stream events from a background process and wake on the right line.
-- For genuinely recurring schedules use `CronCreate` rather than re-arming sleep manually.
-- When the wait returns, immediately run the required live audit or follow-up command.
+- Launch the wait in the background: `exec` with `timeout: 0` running `sleep <secs> && <the audit command>` — or a watcher loop that exits when the awaited line appears — and keep the returned `shell_id`.
+- For genuinely recurring schedules, use the OS scheduler (cron/systemd timer) rather than re-arming sleep manually.
+- When the wait returns, collect it with `get_output <shell_id>` and immediately run the required live audit or follow-up command.
 - Do not start another long wait unless the live audit shows a new event that creates a new deadline.
 - Do not emit repeated "still waiting" updates. State the deadline once, then act when it expires.
 
 For PR merge quiet windows specifically:
 
 - `deadline = latest reviewer/check event timestamp + required quiet window`.
-- After `deadline`, immediately re-query head SHA, checks, merge state, and unresolved non-outdated review threads (`gh` CLI via Bash, or `gh api graphql`).
+- After `deadline`, immediately re-query head SHA, checks, merge state, and unresolved non-outdated review threads (`gh` CLI via `exec`, or `gh api graphql`).
 - If the audit is clean, merge immediately.
 - If a new reviewer/check event appears, state the new deadline once and repeat the single-wait process.
 
 ## 6. Delegated Agent Defaults
 
-When spawning sub-agents via the `Agent` tool, default to:
+When spawning sub-agents via `run_subagent`, default to:
 
-- `subagent_type`: choose the most specific agent type that matches the task (`Explore` for codebase searches, `Plan` for planning-input work, `general-purpose` otherwise).
-- `Explore` and `Plan`: when reading production code, invoke `codebase-design` and discover deepening opportunities; do not stop at locating code.
-- `model`: omit it; delegates inherit the parent session's model — through a proxy/gateway, the gateway's model. Pass one only when the task clearly warrants a different tier, and never a model the session's auth route cannot serve.
-- On Claude Code 2.1.251+, `CLAUDE_CODE_SUBAGENT_MODEL` supplies a default; explicit Agent/skill model selections take precedence. `CLAUDE_CODE_SUBAGENT_MODEL_FORCE=1` changes that precedence on supported versions. Verify the executed model from harness receipts, not environment settings.
+- `profile`: choose the most specific profile that matches the task (`subagent_explore` for codebase searches and planning-input work, `subagent_general` otherwise).
+- `subagent_explore`: when reading production code, invoke `codebase-design` and discover deepening opportunities; do not stop at locating code.
+- Model: `subagent_explore` runs on the default subagent model (SWE-1.6 via the org router); `subagent_general` inherits the parent session's model. Pin a `model:` in a custom `.devin/agents/` profile or a skill's frontmatter when the task clearly warrants a different tier. Verify the executed model from harness receipts, not environment settings.
 
 Keep delegation bounded:
 
 - **Fan-in before planning.** Every spawned delegate returns before the lead writes the design or plan.
-- **Delegates provide planning inputs; the lead owns the design.** Explore/Plan delegates explore, compare alternatives, and invoke `codebase-design`; the lead reconciles their reports and authors the governing design.
+- **Delegates provide planning inputs; the lead owns the design.** Explore delegates explore, compare alternatives, and invoke `codebase-design`; the lead reconciles their reports and authors the governing design.
 - Do not run build, typecheck, or proof commands concurrently with a delegated agent unless the user explicitly asks for that level of parallel execution.
 
 If the parent session needs an independent second opinion, spawn a fresh agent rather than asking the same context-laden agent to self-review.
@@ -129,7 +128,7 @@ If the parent session needs an independent second opinion, spawn a fresh agent r
 
 Use the `repo-production-workflow` skill as the default first skill for production repository work. It owns the execution sequence; this section owns only when skills fire.
 
-The full chain, in order — every named skill is INVOKED with the Skill tool by exact name (reading its `SKILL.md` does not satisfy the step):
+The full chain, in order — every named skill is INVOKED with the `skill` tool by exact name (reading its `SKILL.md` does not satisfy the step):
 
 `repo-production-workflow` → `repo-context-forge` (+ its `bootstrap.py`, which executes the packet-scoped GitNexus checks and records that graph result as workflow evidence — there is no separate transition to record) → `diagnose` (bugs/regressions/perf only) → `codex-advisor` scope check when the request raises a design or scope question (phase `preflight-advice`; its wrapper ONLY) → `production-preflight` → `tdd` failing test first for behavior changes → `production-code` (invoked; its gate run is the baseline) before implementation edits → implementation through final verification → `code-review` delegate review when non-trivial → final Codex Advisor review (wrapper phase `final-review`, same `--slug`) → workflow `complete` → commit/push/PR → reviewer completion gate.
 
@@ -138,9 +137,9 @@ Invocation policy:
 - Escalate to `repo-large-implementation` for large planned work: anything likely to span multiple PRs, need a durable governing design, or exceed the review budget. Begin a `repo-production-workflow` pass, run Repo Context Forge, then pair `delivery-governance` with `execution-planning` before continuing that same pass for the first implementation. Later execution slices begin their own passes against the governing design. New advisor-bound designs are keyed by the workflow's public `workflowId` under the selected workflow state root, outside the Git checkout; create a tracked planning document only when the user explicitly requests that document as a deliverable, and never maintain one for progress or execution state.
 - Use `diagnose` before fixing bugs, failures, flaky behavior, or performance regressions; the canonical root-cause-first gate above governs entry to a fix.
 - Use `tdd` for behavior changes where a public-Interface failing test is practical; name the real production Seam and apply the canonical mock ban above without exception.
-- Skill invocation is per execution pass, not per session: every new PR slice, every bug or regression outside the active pass's recorded intent, and every reviewer-fix round from signals on a pushed PR head begins a new pass by invoking `repo-production-workflow` with the Skill tool before Repo Context Forge, `diagnose`, or any edit, then follows the rest of the chain. Findings raised by the `code-review` delegate or final Codex Advisor against the current unpushed tree stay in the active pass and follow the return-to-implementation path owned by `WORKFLOW-MAP.md`. Compaction or resume notes never waive re-invocation for a new pass. A harness compaction notice that says not to re-execute previously invoked skills governs their one-time setup actions only (scheduling, file creation) and is never a waiver of this rule. A pass that spans the compaction boundary keeps the invocations it already made; a new pass begun after compaction re-invokes its chain regardless of the notice's wording.
+- Skill invocation is per execution pass, not per session: every new PR slice, every bug or regression outside the active pass's recorded intent, and every reviewer-fix round from signals on a pushed PR head begins a new pass by invoking `repo-production-workflow` with the `skill` tool before Repo Context Forge, `diagnose`, or any edit, then follows the rest of the chain. Findings raised by the `code-review` delegate or final Codex Advisor against the current unpushed tree stay in the active pass and follow the return-to-implementation path owned by `WORKFLOW-MAP.md`. Compaction or resume notes never waive re-invocation for a new pass. A harness compaction notice that says not to re-execute previously invoked skills governs their one-time setup actions only (scheduling, file creation) and is never a waiver of this rule. A pass that spans the compaction boundary keeps the invocations it already made; a new pass begun after compaction re-invokes its chain regardless of the notice's wording.
 - Do not bypass `repo-production-workflow` by jumping from Repo Context Forge straight to edits.
-- Do not re-invoke `execution-planning` for an execution-only pass when a governing design exists. The design is a falsifiable hypothesis, not an immutable authority: deepen it append-only in the same unpushed workflow, and record the changed declaration at the next advisor consult — the ledger keeps every prior version. Adding or correcting a design or attack obligation never by itself requires another `begin`, another preflight Advisor consultation, or a Repo Context Forge rerun; only changed production behavior invalidates the proof it can affect, and a pushed-head reviewer correction still begins the required new pass under existing delivery policy. The original user intent and public production Interface remain the completeness authority throughout. Repository-scoped workflow history and GitHub PR state carry durable progress; Tasks are session-local convenience only. Existing tracked governing artifacts already controlling in-flight work remain authoritative under their existing contracts and are not migrated or rewritten merely to adopt the workflow-state design policy.
+- Do not re-invoke `execution-planning` for an execution-only pass when a governing design exists. The design is a falsifiable hypothesis, not an immutable authority: deepen it append-only in the same unpushed workflow, and record the changed declaration at the next advisor consult — the ledger keeps every prior version. Adding or correcting a design or attack obligation never by itself requires another `begin`, another preflight Advisor consultation, or a Repo Context Forge rerun; only changed production behavior invalidates the proof it can affect, and a pushed-head reviewer correction still begins the required new pass under existing delivery policy. The original user intent and public production Interface remain the completeness authority throughout. Repository-scoped workflow history and GitHub PR state carry durable progress; task lists (`todo_write`) are session-local convenience only. Existing tracked governing artifacts already controlling in-flight work remain authoritative under their existing contracts and are not migrated or rewritten merely to adopt the workflow-state design policy.
 - Documentation-only changes follow the Repo Context Forge gate exception below.
 
 The **review budget** targets ~500 net lines of code per PR (net = additions minus deletions in human-authored source; measurement and the 1,000-net-line split threshold live in the delivery-governance skill). Split, shrink, or consolidate scope before coding when a planned PR is likely to run past the target.
@@ -188,9 +187,9 @@ Choose one stable task slug, begin its workflow state, then run the installed
 bootstrap wrapper with the same slug:
 
 ```bash
-printf '%s' "$request_text" | python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" begin \
+printf '%s' "$request_text" | python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" begin \
   --repo "$PWD" --slug "<stable-task-slug>" --intent -
-python3 "$HOME/.claude/skills/repo-context-forge/scripts/bootstrap.py" \
+python3 "$HOME/.config/devin/skills/repo-context-forge/scripts/bootstrap.py" \
   --repo "$PWD" --workflow-slug "<stable-task-slug>" --intent "<user request>"
 ```
 
@@ -207,7 +206,7 @@ Delegated agents inherit the packet: spawn any sub-agent for repository explorat
 
 The `repo-context-forge` skill owns everything downstream of the intake: surface selection per mode, the consolidated-specialist delegation contract, surface reconciliation, packet-scoped GitNexus validation, and post-edit revalidation. For review-only tasks, do not edit code unless the user explicitly asks for a fix; report valid defects first and wait for an edit instruction.
 
-The source checkout is input: Repo Context Forge must not leave `.soulforge`, `.codex`, `.claude`, or incidental `.gitignore` mutations in the user's checkout; an intentional `.gitnexus/` ignore rule is allowed when GitNexus indexes the source checkout.
+The source checkout is input: Repo Context Forge must not leave `.soulforge`, `.codex`, `.claude`, `.devin`, or incidental `.gitignore` mutations in the user's checkout; an intentional `.gitnexus/` ignore rule is allowed when GitNexus indexes the source checkout.
 
 ## 9. GitNexus — Global Workflow
 
@@ -216,8 +215,8 @@ Inside an indexed repository, use GitNexus for structure, blast radius, and exec
 ### Search Flow
 
 - Use the `fff` MCP server (`mcp__fff__<tool>`) as the primary initial search layer for raw file and content discovery: file lookup, symbol lookup, text search, broad exploration, multi-pattern search.
-- Use Bash `rg` only when an exhaustive raw listing, exact count, machine-readable full output, or a missing `fff` tool makes it necessary.
-- Do not use `grep` or `find` for repository search unless both `fff` and `rg` are unavailable, or the task specifically requires those commands.
+- Use the `grep`/`find_file_by_name` tools or `exec rg` only when an exhaustive raw listing, exact count, machine-readable full output, or a missing `fff` tool makes it necessary.
+- Do not use shell `grep` or `find` for repository search unless both `fff` and `rg` are unavailable, or the task specifically requires those commands.
 - After locating the symbol or file, switch to GitNexus for meaning and safety:
   - `mcp__gitnexus__query` for architecture and execution flows
   - `mcp__gitnexus__context` for callers/callees and process participation
@@ -248,12 +247,12 @@ Inside an indexed repository, use GitNexus for structure, blast radius, and exec
 
 ### Hooks
 
-Hook configuration lives in `~/.claude/settings.json`. Five facts govern how hooks change what you do:
+Hook configuration lives in the `hooks` key of `~/.config/devin/config.json`. Five facts govern how hooks change what you do:
 
-- Production edits are advised, never refused: `PreToolUse(Edit|Write|NotebookEdit)` names what the pass has not recorded and admits the edit; docs, scratch, and non-repository paths are silent. A RED taken after production changed is labelled late, never refused.
+- Production edits are advised, never refused: `PreToolUse` on `edit|write|notebook_edit|apply_patch` names what the pass has not recorded and admits the edit; docs, scratch, and non-repository paths are silent. A RED taken after production changed is labelled late, never refused.
 - Every production edit, and every governance edit, invalidates downstream review readiness before quality feedback returns, so review and final review must be earned again. A completed workflow stays terminal; an edit against it is advised to begin a new pass.
-- `SessionStart(compact|resume)` restores the chain from committed SQLite state; compaction never advances or waives a step.
+- `SessionStart` (resume/compact sources) and `PostCompaction` restore the chain from committed SQLite state; compaction never advances or waives a step.
 - There is no Stop hook; `workflow.py summary` reports the earned proof (`Contract green=n/m`) and the next action on demand.
-- No hook parses Bash or authorizes Git.
+- No hook parses exec commands or authorizes Git.
 
 The `repo-production-workflow` skill's `WORKFLOW-MAP.md` is the canonical operational documentation for per-hook roles.

@@ -2415,7 +2415,7 @@ def assert_pinned_digest(stamped: list[dict[str, object]], case: str, index: int
     """The replayed record must be byte-identical to the parent-pinned one."""
     root = stamped[index]["validationRoot"]
     assert root["digest"] == _PINNED_RECORD_DIGESTS[case], (case, root)
-_P1_SHELL_ANCHOR = 'state_dir="${CLAUDE_WORKFLOW_STATE_ROOT:-${CLAUDE_HOME:-$HOME/.claude}/state}/_advisor-sessions"'
+_P1_SHELL_ANCHOR = 'state_dir="${DEVIN_WORKFLOW_STATE_ROOT:-${DEVIN_ESTATE_HOME:-$HOME/.config/devin}/state}/_advisor-sessions"'
 
 
 def range_graph_evidence(repo: Path, base: str, candidate: str) -> Path:

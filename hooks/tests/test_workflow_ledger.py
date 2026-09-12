@@ -47,8 +47,8 @@ class WorkflowLedgerTests(unittest.TestCase):
         git(self.repo, "add", "app.py")
         git(self.repo, "commit", "-q", "-m", "base")
         self.state_root = self.tmp / "state"
-        self.previous_state_root = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.state_root)
+        self.previous_state_root = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.state_root)
         self.env = os.environ.copy()
         self.design_declaration = self.tmp / "design-absent.json"
         self.design_declaration.write_text(json.dumps({
@@ -59,9 +59,9 @@ class WorkflowLedgerTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.previous_state_root is None:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         else:
-            os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = self.previous_state_root
+            os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = self.previous_state_root
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def cli(self, *args: str) -> subprocess.CompletedProcess[str]:
@@ -169,17 +169,17 @@ class WorkflowLedgerTests(unittest.TestCase):
                          "read-only history created a permanent empty state slot")
 
     def test_begin_secures_a_new_default_state_root(self) -> None:
-        claude_home = self.tmp / "claude-home"
+        estate_home = self.tmp / "claude-home"
         env = self.env.copy()
-        env.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
-        env["CLAUDE_HOME"] = str(claude_home)
+        env.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
+        env["DEVIN_ESTATE_HOME"] = str(estate_home)
         begun = subprocess.run(
             [sys.executable, str(WORKFLOW), "begin", "--repo", str(self.repo), "--slug", "private-root"],
             cwd=self.repo, env=env, text=True, encoding="utf-8",
             stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
         )
         self.assertEqual(begun.returncode, 0, begun.stderr)
-        self.assertEqual(stat.S_IMODE((claude_home / "state").stat().st_mode), 0o700)
+        self.assertEqual(stat.S_IMODE((estate_home / "state").stat().st_mode), 0o700)
 
     def test_begin_and_status_use_private_sqlite_without_a_json_snapshot(self) -> None:
         begun = self.cli("begin", "--repo", str(self.repo), "--slug", "ledger", "--intent", "test")

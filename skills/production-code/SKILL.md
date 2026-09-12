@@ -17,7 +17,7 @@ this doctrine active through implementation and final verification.
 Before editing, use the standards below to choose the smallest production-safe implementation path. Run the bundled non-mutating gate from the target repository before finalizing:
 
 ```bash
-PYTHONDONTWRITEBYTECODE=1 python3 "$HOME/.claude/skills/production-code/scripts/code_quality_gate.py" check --repo "$PWD"
+PYTHONDONTWRITEBYTECODE=1 python3 "$HOME/.config/devin/skills/production-code/scripts/code_quality_gate.py" check --repo "$PWD"
 ```
 
 Use `--base-ref <ref>` when a review base is known; without it the gate
@@ -81,12 +81,12 @@ The decision is complete only when one outcome is recorded:
 - Keep private helpers behind the existing module interface unless preflight justifies a new public seam.
 - Preserve direct data flow.
 - Keep I/O and control flow explicit and traceable.
-- Apply the canonical mock ban and fake-green rules in `~/.claude/CLAUDE.md`; no local procedure creates an exception.
+- Apply the canonical mock ban and fake-green rules in `~/.config/devin/AGENTS.md`; no local procedure creates an exception.
 - Never use `|| true`, swallow-and-continue flows, blanket catch/pass, or suppression that hides a real failure.
 - Never leave `TODO`, `FIXME`, `HACK`, placeholder stubs, dummy implementations, fake adapters, or temporary bypasses in shippable code.
 - Treat uncertainty as a stop-and-verify condition, not a reason to guess.
 - Treat review comments as evidence to verify against the code and contract, not authority to obey blindly.
-- Apply the canonical imaginary-risk ban in `~/.claude/CLAUDE.md` before adding any guard, fallback, retry, configuration, abstraction, or code.
+- Apply the canonical imaginary-risk ban in `~/.config/devin/AGENTS.md` before adding any guard, fallback, retry, configuration, abstraction, or code.
 - Stay on task: if the cumulative diff grows past roughly 3× what the task implies, stop and justify the overrun before continuing.
 - For behavior proof invoke `tdd`; the canonical mock ban governs every claimed RED/GREEN result.
 

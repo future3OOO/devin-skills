@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "read_config_from": {
+    "claude": false
+  },
+  "permissions": {
+    "allow": [
+      "Exec(sort)",
+      "Exec(chmod +x)",
+      "Exec(tail)",
+      "Exec(cd)",
+      "Fetch(domain:getlate.dev)",
+      "Fetch(domain:blogambitious.com)",
+      "Fetch(domain:wiringbits.net)",
+      "Fetch(domain:python-sage-meta.readthedocs.io)",
+      "Fetch(domain:developers.make.com)",
+      "Fetch(domain:docs.mixpost.app)",
+      "Fetch(domain:developers.facebook.com)",
+      "Fetch(domain:gist.github.com)",
+      "Fetch(domain:datkira.medium.com)",
+      "Exec(git)",
+      "Exec(gh)",
+      "Exec(python3)",
+      "Exec(PYTHONDONTWRITEBYTECODE=1 python3)",
+      "Exec(bash)",
+      "Exec(npm)",
+      "Exec(npx)",
+      "Exec(node)",
+      "Exec(gitnexus)",
+      "Exec(herdr)",
+      "Exec(rg)",
+      "Exec(ls)",
+      "Exec(mkdir)",
+      "Exec(cmp)",
+      "Exec(diff)",
+      "Exec(readlink)",
+      "Exec(date)",
+      "Exec(wc)",
+      "Exec(head)",
+      "Exec(printf)",
+      "Exec(echo)",
+      "Exec(nohup)",
+      "Exec(pgrep)",
+      "Exec(ps)",
+      "Exec(cp)",
+      "Exec(mv)",
+      "Exec(ln -s)",
+      "Exec(cat /home/prop_/projects)",
+      "Exec(cat /home/prop_/.config/devin)",
+      "Exec(cat /tmp/claude-1000)"
+    ],
+    "deny": [
+      "Exec(systemctl --user stop openclaw-gateway.service)",
+      "Exec(systemctl --user restart openclaw-gateway.service)",
+      "Write(~/.config/devin/config.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^(edit|write|notebook_edit|apply_patch)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/devin/hooks/rcf-intake-gate.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "^(edit|write|notebook_edit|apply_patch)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/devin/hooks/code-quality-gate.py"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/devin/hooks/skill-discipline-rearm.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostCompaction": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.config/devin/hooks/skill-discipline-rearm.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

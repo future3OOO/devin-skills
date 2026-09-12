@@ -144,7 +144,7 @@ projection_file="$transport_dir/advisor-projection.json"
 intent_file="$transport_dir/recorded-intent.txt"
 ledger_file="$transport_dir/finding-ledger.json"
 late_file="$transport_dir/late-red.json"
-state_dir="${CLAUDE_WORKFLOW_STATE_ROOT:-${CLAUDE_HOME:-$HOME/.claude}/state}/_advisor-sessions"
+state_dir="${DEVIN_WORKFLOW_STATE_ROOT:-${DEVIN_ESTATE_HOME:-$HOME/.config/devin}/state}/_advisor-sessions"
 mkdir -p "$state_dir"; chmod 700 "$state_dir"
 if [[ -n "$phase" ]]; then
   # One checkpoint, read under the session lock, so the candidate it describes is

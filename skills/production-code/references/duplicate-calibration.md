@@ -52,7 +52,7 @@ requires a parent re-pin.
 ### The one fire, examined
 
 `hooks/tests/test_state_prune.py:50` and `hooks/tests/test_state_prune.py:395`
-carry the same six canonical lines — the `CLAUDE_WORKFLOW_STATE_ROOT` /
+carry the same six canonical lines — the `DEVIN_WORKFLOW_STATE_ROOT` /
 `PYTHONDONTWRITEBYTECODE` environment dict plus the `subprocess.run` call that
 follows it. Line 50 is inside the class's own `prune()` helper; line 395
 rebuilds that same environment and invocation inline instead of calling it.

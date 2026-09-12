@@ -71,7 +71,7 @@ def is_excluded_path(path: str) -> bool:
     lowered = f"/{normalize_path(path).lower()}"
     return any(
         marker in lowered
-        for marker in ("/.claude/quality/logs/", "/.codex/quality/logs/", "/logs/")
+        for marker in ("/.config/devin/quality/logs/", "/.codex/quality/logs/", "/logs/")
     )
 
 

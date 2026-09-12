@@ -82,16 +82,16 @@ class MapAdvisoryTests(unittest.TestCase):
         (self.repo / "tests").mkdir(parents=True)
         self.slug = "map-advisory"
         self.intent = "advise on impacted tests the map does not own"
-        previous = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
+        previous = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
 
         def restore_state_root() -> None:
             if previous is None:
-                os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+                os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
             else:
-                os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = previous
+                os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = previous
 
         self.addCleanup(restore_state_root)
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
         self.env = fixture_env(self.tmp / "state")
         self.git("init", "-q")
         self.git("config", "user.email", "test@example.invalid")

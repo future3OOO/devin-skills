@@ -51,7 +51,7 @@ def fixture_env(state_root: Path) -> dict[str, str]:
     home = state_root.parent / "fixture-home"
     home.mkdir(parents=True, exist_ok=True)
     env.update({
-        "CLAUDE_WORKFLOW_STATE_ROOT": str(state_root),
+        "DEVIN_WORKFLOW_STATE_ROOT": str(state_root),
         "HOME": str(home),
         # The interpreter resolves user site-packages under HOME, so a --user
         # install such as pytest would vanish with it; keep the real one importable.

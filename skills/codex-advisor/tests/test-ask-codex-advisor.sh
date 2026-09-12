@@ -127,23 +127,23 @@ check "phased anchor refusal names checkpoint ownership" "checkpoint owns projec
 
 printf '== checkpoint and path identity\n'
 state="$argtmp/state"
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$state" "$WRAPPER" --slug orphan --phase preflight-advice --design-absent no --cwd "$argtmp/repo" -- q 2>&1); status=$?
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$state" "$WRAPPER" --slug orphan --phase preflight-advice --design-absent no --cwd "$argtmp/repo" -- q 2>&1); status=$?
 check_status "phased consult without workflow refused" 2 "$status"; check "missing workflow named" "requires an active workflow" "$out"
-CLAUDE_WORKFLOW_STATE_ROOT="$state" python3 "$WORKFLOW" begin --repo "$argtmp/repo" --slug real-pass >/dev/null
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$state" "$WRAPPER" --slug wrong-pass --phase preflight-advice --design-absent no --cwd "$argtmp/repo" -- q 2>&1); status=$?
+DEVIN_WORKFLOW_STATE_ROOT="$state" python3 "$WORKFLOW" begin --repo "$argtmp/repo" --slug real-pass >/dev/null
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$state" "$WRAPPER" --slug wrong-pass --phase preflight-advice --design-absent no --cwd "$argtmp/repo" -- q 2>&1); status=$?
 check_status "mismatched slug refused" 2 "$status"; check "slug mismatch named" "does not match the active workflow" "$out"
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$state" "$WRAPPER" --slug real-pass --phase preflight-advice --design-absent no --cwd "$argtmp/repo" -- q 2>&1); status=$?
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$state" "$WRAPPER" --slug real-pass --phase preflight-advice --design-absent no --cwd "$argtmp/repo" -- q 2>&1); status=$?
 check_status "not-ready checkpoint refused" 2 "$status"; check "missing graph step named" "repo-context-forge" "$out"
 
 idtmp=$(mktemp -d)
 mkdir -p "$idtmp/home" "$idtmp/repo/sub"
 git -C "$idtmp/repo" init -q
 for cwd in "$idtmp/repo" "$idtmp/repo/sub"; do
-  HOME="$idtmp/home" CLAUDE_HOME="$idtmp/claude" CLAUDE_WORKFLOW_STATE_ROOT="$idtmp/state" \
+  HOME="$idtmp/home" DEVIN_ESTATE_HOME="$idtmp/claude" DEVIN_WORKFLOW_STATE_ROOT="$idtmp/state" \
     "$WRAPPER" --slug path-identity --cwd "$cwd" -- q >/dev/null 2>&1
 done
 ln -s "$idtmp/repo" "$idtmp/link"
-HOME="$idtmp/home" CLAUDE_HOME="$idtmp/claude" CLAUDE_WORKFLOW_STATE_ROOT="$idtmp/state" \
+HOME="$idtmp/home" DEVIN_ESTATE_HOME="$idtmp/claude" DEVIN_WORKFLOW_STATE_ROOT="$idtmp/state" \
   "$WRAPPER" --slug path-identity --cwd "$idtmp/link" -- q >/dev/null 2>&1
 sid_count=$(ls "$idtmp/state/_advisor-sessions" 2>/dev/null | wc -l | tr -d ' ')
 check_status "one phase-less SID across canonical paths" 1 "$sid_count"
@@ -186,7 +186,7 @@ fi
 PROVIDER
 chmod +x "$rigtmp/bin/claude"
 rigstate="$rigtmp/state"
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" begin --repo "$rigtmp/repo" --slug scoped-rig --intent 'scoped advisor transport' >/dev/null
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" begin --repo "$rigtmp/repo" --slug scoped-rig --intent 'scoped advisor transport' >/dev/null
 printf 'value = 2\n' >"$rigtmp/repo/app.py"
 cat >"$rigtmp/repo/test_transport_probe.py" <<'PY'
 import unittest
@@ -195,7 +195,7 @@ class Reader(unittest.TestCase):
     def test_value(self):
         self.assertEqual(app.value, 2, "READER_VALUE_WRONG")
 PY
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 - "$ROOT" "$rigtmp/repo" <<'PY'
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 - "$ROOT" "$rigtmp/repo" <<'PY'
 import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
@@ -204,8 +204,8 @@ record_context_forge(Path(sys.argv[2]), Path(sys.argv[2]).parent)
 PY
 
 run_wrapper() {
-  PATH="$rigtmp/bin:$PATH" HOME="$rigtmp/home" CLAUDE_HOME="$rigtmp/claude" \
-    CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" CAPTURE_DIR="$rigtmp/capture" \
+  PATH="$rigtmp/bin:$PATH" HOME="$rigtmp/home" DEVIN_ESTATE_HOME="$rigtmp/claude" \
+    DEVIN_WORKFLOW_STATE_ROOT="$rigstate" CAPTURE_DIR="$rigtmp/capture" \
     "$WRAPPER" --cwd "$rigtmp/repo" "$@"
 }
 preflight_out=$(run_wrapper --slug scoped-rig --phase preflight-advice --design-file "$rigtmp/design.md" -- 'scope question' 2>"$rigtmp/preflight.err"); status=$?
@@ -237,9 +237,9 @@ for old in 'repo context packet' 'Repo Context Forge graph evidence' '--- unstag
   check_absent "old payload absent ($old)" "$old" "$(cat "$rigtmp/capture/payload-1")"
 done
 
-wid=$(CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" status --repo "$rigtmp/repo" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workflowId"])')
+wid=$(DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" status --repo "$rigtmp/repo" | python3 -c 'import json,sys; print(json.load(sys.stdin)["workflowId"])')
 # The controlled intake owns real runner-backed evidence, not authored GREEN.
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 - "$ROOT" "$rigtmp/repo" "$rigtmp/preflight.json" <<'PY'
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 - "$ROOT" "$rigtmp/repo" "$rigtmp/preflight.json" <<'PY'
 import json, sys
 sys.path.insert(0, sys.argv[1])
 from hooks.lib.repo_identity import resolve_repo_identity
@@ -257,25 +257,25 @@ doc["riskChecks"] = "Keep fixed bounds after measurement; compare the same real-
 doc["proofPlan"] = "workflow.py verify -- python3 -m unittest hooks.tests.test_behavior_map_workflow.BehaviorMapWorkflowTests.test_consecutive_hook_obligations_are_bounded_without_extra_edit_work; report actual source target, scale, limit and observed value."
 open(sys.argv[3], "w", encoding="utf-8").write(json.dumps(doc))
 PY
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" record-preflight --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --input "$rigtmp/preflight.json" >/dev/null
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" record-preflight --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --input "$rigtmp/preflight.json" >/dev/null
 for behavior in BM_KEEP BM_READER; do
-  out=$(CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" tdd --repo "$rigtmp/repo" --slug scoped-rig --phase red --behavior-id "$behavior" -- python3 -m unittest test_transport_probe 2>&1); status=$?
+  out=$(DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" tdd --repo "$rigtmp/repo" --slug scoped-rig --phase red --behavior-id "$behavior" -- python3 -m unittest test_transport_probe 2>&1); status=$?
   check_status "$behavior receives an executed baseline" 0 "$status"
 done
 PYTHONDONTWRITEBYTECODE=1 python3 "$ROOT/skills/production-code/scripts/code_quality_gate.py" check --repo "$rigtmp/repo" --json >"$rigtmp/gate.json"
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" record-production-code --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --input "$rigtmp/gate.json" >/dev/null
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" set-phase --repo "$rigtmp/repo" --phase implementation --status passed >/dev/null
-selected_receipt=$(PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" verify --repo "$rigtmp/repo" --slug scoped-rig -- python3 -m unittest hooks.tests.test_behavior_map_workflow.BehaviorMapWorkflowTests.test_consecutive_hook_obligations_are_bounded_without_extra_edit_work 2>"$rigtmp/measurement.err"); status=$?
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" record-production-code --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --input "$rigtmp/gate.json" >/dev/null
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" set-phase --repo "$rigtmp/repo" --phase implementation --status passed >/dev/null
+selected_receipt=$(PYTHONPATH="$ROOT${PYTHONPATH:+:$PYTHONPATH}" DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" verify --repo "$rigtmp/repo" --slug scoped-rig -- python3 -m unittest hooks.tests.test_behavior_map_workflow.BehaviorMapWorkflowTests.test_consecutive_hook_obligations_are_bounded_without_extra_edit_work 2>"$rigtmp/measurement.err"); status=$?
 check_status "declared hook resource operation verifies through the real runner" 0 "$status"
 check "selected operation reports its fixed byte limit" '"limitBytes": 2048' "$selected_receipt"
 check "selected operation reports its retained scale" '"scale": 82' "$selected_receipt"
 printf '%s\n' "$selected_receipt" | tee "$rigtmp/selected-receipt.txt"
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" verify --repo "$rigtmp/repo" --slug scoped-rig --kind quality-gate --base-ref HEAD >/dev/null
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" set-phase --repo "$rigtmp/repo" --phase code-review --status not-required --findings none >/dev/null
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" verify --repo "$rigtmp/repo" --slug scoped-rig --kind quality-gate --base-ref HEAD >/dev/null
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" set-phase --repo "$rigtmp/repo" --phase code-review --status not-required --findings none >/dev/null
 
 # One report-only finding is settled; the other remains pending. Reassessment
 # blocks final transport, but measured rejection remains reachable in that pass.
-CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 - "$ROOT" "$rigtmp/repo" <<'PY'
+DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 - "$ROOT" "$rigtmp/repo" <<'PY'
 import json, sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
@@ -295,20 +295,20 @@ for identifier, status in (("SPEC-1", "report-only"), ("SPEC-2", "rejected-with-
     (repo.parent / f"{identifier}.json").write_text(json.dumps(doc), encoding="utf-8")
 (repo.parent / "reassess.json").write_text(json.dumps({"reassessment":"reader preservation affected", "dispositions":[{"id":"BM_KEEP", "revalidate":True, "evidence":"re-execute retained reader before closure"}]}), encoding="utf-8")
 PY
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" advisor-disposition --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --stage preflight --findings addressed --input "$rigtmp/SPEC-1.json" 2>&1); status=$?
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" advisor-disposition --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --stage preflight --findings addressed --input "$rigtmp/SPEC-1.json" 2>&1); status=$?
 check_status "executed owning evidence settles report-only" 0 "$status"
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" tdd-map --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --input "$rigtmp/reassess.json" 2>&1); status=$?
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" tdd-map --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --input "$rigtmp/reassess.json" 2>&1); status=$?
 check_status "settled owner enters reassessment" 0 "$status"
 out=$(run_wrapper --slug scoped-rig --phase final-review --design-file "$rigtmp/design.md" -- 'final question' 2>&1); status=$?
 check_status "pending preservation blocks ordinary final transport" 2 "$status"
 check "refusal names the unresolved owner" "BM_KEEP" "$out"
 check_status "blocked final never invokes the provider" 1 "$(cat "$rigtmp/capture/count")"
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" advisor-disposition --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --stage preflight --findings addressed --input "$rigtmp/SPEC-2.json" 2>&1); status=$?
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" advisor-disposition --repo "$rigtmp/repo" --slug scoped-rig --workflow-id "$wid" --stage preflight --findings addressed --input "$rigtmp/SPEC-2.json" 2>&1); status=$?
 check_status "measured rejection remains reachable with pending preservation" 0 "$status"
 out=$(run_wrapper --slug scoped-rig --phase final-review --design-file "$rigtmp/design.md" -- 'final question' 2>&1); status=$?
 check_status "rejecting a finding does not erase pending preservation" 2 "$status"
 check_status "unrelated pending work still prevents provider invocation" 1 "$(cat "$rigtmp/capture/count")"
-out=$(CLAUDE_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" tdd --repo "$rigtmp/repo" --slug scoped-rig --phase red --behavior-id BM_KEEP -- python3 -m unittest test_transport_probe 2>&1); status=$?
+out=$(DEVIN_WORKFLOW_STATE_ROOT="$rigstate" python3 "$WORKFLOW" tdd --repo "$rigtmp/repo" --slug scoped-rig --phase red --behavior-id BM_KEEP -- python3 -m unittest test_transport_probe 2>&1); status=$?
 check_status "same retained operation closes preservation without a fabricated RED" 0 "$status"
 
 FAIL_PROVIDER=1 run_wrapper --slug scoped-rig --phase final-review --design-file "$rigtmp/design.md" -- 'final question' >/dev/null 2>"$rigtmp/resume-fail.err"; status=$?

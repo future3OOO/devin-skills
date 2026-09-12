@@ -35,7 +35,7 @@ Before implementation starts, save one Markdown design under the selected workfl
 
 `<workflow-state-root>/<repo-key>/designs/<workflowId>.md`
 
-The workflow's public status Interface supplies `<workflowId>`; callers do not derive or normalize another workflow identity. The workflow state root is `CLAUDE_WORKFLOW_STATE_ROOT` when set, otherwise `${CLAUDE_HOME:-$HOME/.claude}/state`. Do not derive `<repo-key>` independently; use `hooks.lib.repo_identity.resolve_repo_identity()` or the installed `repo_identity.py --field key` Interface.
+The workflow's public status Interface supplies `<workflowId>`; callers do not derive or normalize another workflow identity. The workflow state root is `DEVIN_WORKFLOW_STATE_ROOT` when set, otherwise `${DEVIN_ESTATE_HOME:-$HOME/.config/devin}/state`. Do not derive `<repo-key>` independently; use `hooks.lib.repo_identity.resolve_repo_identity()` or the installed `repo_identity.py --field key` Interface.
 
 ## Governing Design Format
 

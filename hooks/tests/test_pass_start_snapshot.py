@@ -247,19 +247,19 @@ class ExecutedSelectionsTests(unittest.TestCase):
         self.repo.mkdir()
         self.slug = "executed-selections"
         self.env = fixture_env(self.tmp / "state")
-        previous = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
+        previous = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
 
         def restore_state_root() -> None:
             if previous is None:
-                os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+                os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
             else:
-                os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = previous
+                os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = previous
 
         # Registered before the variable is set and before anything else can
         # fail, so a setUp that raises still restores what the caller had.
         self.addCleanup(restore_state_root)
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
         self.git("init", "-q")
         self.git("config", "user.email", "test@example.invalid")
         self.git("config", "user.name", "Workflow Harness")

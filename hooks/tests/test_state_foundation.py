@@ -36,16 +36,16 @@ def git(repo: Path, *args: str) -> str:
 class StateFoundationTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp(prefix="workflow-state-foundation-"))
-        self.claude_home = self.tmp / "claude-home"
-        self.claude_home.mkdir(mode=0o700)
-        self.previous_home = os.environ.get("CLAUDE_HOME")
-        os.environ["CLAUDE_HOME"] = str(self.claude_home)
+        self.estate_home = self.tmp / "claude-home"
+        self.estate_home.mkdir(mode=0o700)
+        self.previous_home = os.environ.get("DEVIN_ESTATE_HOME")
+        os.environ["DEVIN_ESTATE_HOME"] = str(self.estate_home)
 
     def tearDown(self) -> None:
         if self.previous_home is None:
-            os.environ.pop("CLAUDE_HOME", None)
+            os.environ.pop("DEVIN_ESTATE_HOME", None)
         else:
-            os.environ["CLAUDE_HOME"] = self.previous_home
+            os.environ["DEVIN_ESTATE_HOME"] = self.previous_home
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def make_repo(self) -> Path:

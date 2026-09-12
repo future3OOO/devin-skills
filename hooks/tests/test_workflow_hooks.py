@@ -43,11 +43,11 @@ class HookHarness(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="workflow-hooks-"))
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
-        self.previous_state_root = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
+        self.previous_state_root = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
         self.env = os.environ.copy()
         self.env.update({
-            "CLAUDE_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
+            "DEVIN_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
             "GIT_CONFIG_GLOBAL": os.devnull,
             "GIT_CONFIG_SYSTEM": os.devnull,
             "PYTHONDONTWRITEBYTECODE": "1",
@@ -65,9 +65,9 @@ class HookHarness(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.previous_state_root is None:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         else:
-            os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = self.previous_state_root
+            os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = self.previous_state_root
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def git(self, *args: str, repo: Path | None = None) -> None:
@@ -116,7 +116,7 @@ class HookHarness(unittest.TestCase):
 
     def rewrite_latest_state(self, update) -> None:
         identity = resolve_repo_identity(self.repo)
-        database = Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"]) / identity.key / "workflow.sqlite3"
+        database = Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"]) / identity.key / "workflow.sqlite3"
         connection = sqlite3.connect(database)
         try:
             event_id = connection.execute(
@@ -531,7 +531,7 @@ class WorkflowHookTests(HookHarness):
         after = json.loads(self.state("status").stdout)
         for field in ("slug", "workflowId", "phase", "nextAction", "finalReview"):
             self.assertEqual(after[field], before[field])
-        database = (Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"])
+        database = (Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"])
                     / resolve_repo_identity(self.repo).key / "workflow.sqlite3")
         self.assertTrue(database.is_file())
 
@@ -808,7 +808,7 @@ class WrapperPromptTests(HookHarness):
         (rig / "design.md").write_text(DESIGN_BODY, encoding="utf-8")
         self.git("remote", "add", "origin", "https://example.invalid/prompt-rig.git")
         return dict(self.env, PATH=f"{rig / 'bin'}{os.pathsep}{self.env['PATH']}",
-                    HOME=str(rig / "home"), CLAUDE_HOME=str(rig / "claude"),
+                    HOME=str(rig / "home"), DEVIN_ESTATE_HOME=str(rig / "claude"),
                     CAPTURE_DIR=str(rig / "capture"))
 
     def run_advisor(self, env: dict[str, str], *args: str) -> subprocess.CompletedProcess[str]:
@@ -1103,7 +1103,7 @@ class WrapperPromptTests(HookHarness):
         self.assertNotEqual(first.returncode, 0, marker + ": the shim's create reply is not a final verdict")
         args = (Path(env["CAPTURE_DIR"]) / "args-1").read_text(encoding="utf-8").split()
         created = args[args.index("--session-id") + 1]
-        state_root = env.get("CLAUDE_WORKFLOW_STATE_ROOT") or f"{env['CLAUDE_HOME']}/state"
+        state_root = env.get("DEVIN_WORKFLOW_STATE_ROOT") or f"{env['DEVIN_ESTATE_HOME']}/state"
         persisted = list((Path(state_root) / "_advisor-sessions").glob(f"*-reuse-created-{wid}.sid"))
         self.assertEqual([path.read_text(encoding="utf-8").strip() for path in persisted], [created], marker)
         second = self.run_advisor(env, *consult)
@@ -1261,7 +1261,7 @@ class TollDeletionTests(HookHarness):
                             "printf '%s\\n' '{\"schemaVersion\":1,\"findings\":[],\"verdict\":\"commit-ready\"}'\n", encoding="utf-8")
         provider.chmod(0o755)
         env = {**self.env, "PATH": f"{rig / 'bin'}:{os.environ['PATH']}", "HOME": str(rig / "home"),
-               "CLAUDE_HOME": str(rig / "claude"), "CAPTURE_DIR": str(rig / "capture")}
+               "DEVIN_ESTATE_HOME": str(rig / "claude"), "CAPTURE_DIR": str(rig / "capture")}
         consult = subprocess.run(
             [str(ADVISOR), "--slug", slug, "--phase", "final-review", "--cwd", str(self.repo),
              "--design-absent", "hook-suite rig", "--", "completion question"],
@@ -1484,7 +1484,7 @@ class RedFirstTests(HookHarness):
         """Rewrite the persisted TDD evidence document the way an older producer left it."""
         identity = resolve_repo_identity(self.repo)
         evidence_id = json.loads(self.state("status").stdout)["tddEvidence"]
-        database = Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"]) / identity.key / "workflow.sqlite3"
+        database = Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"]) / identity.key / "workflow.sqlite3"
         connection = sqlite3.connect(database)
         try:
             document = json.loads(connection.execute(

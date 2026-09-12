@@ -15,7 +15,7 @@ maps the remaining owners.
 Choose one short slug for the whole pass and begin state before bootstrap:
 
 ```bash
-printf '%s' "$request_text" | python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" begin \
+printf '%s' "$request_text" | python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" begin \
   --repo "$PWD" --slug "<task>" --intent -
 # or, when the caller already has the request in a file:
 #   ... begin --repo "$PWD" --slug "<task>" --intent-file "<path>"
@@ -45,7 +45,7 @@ storage mechanics are private. Missing authoritative state returns exit 2 with
 Invoke `repo-context-forge`, then run its adapter with the same slug and intent:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-context-forge/scripts/bootstrap.py" \
+python3 "$HOME/.config/devin/skills/repo-context-forge/scripts/bootstrap.py" \
   --repo "$PWD" --workflow-slug "<task>" --intent "<user request>"
 ```
 
@@ -85,7 +85,7 @@ finding is dispositioned whenever its measurement exists. Findings block
 completion, never an edit, a verification run, or a review:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   advisor-disposition --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" --stage preflight --findings addressed --input <document>
 ```
 
@@ -119,7 +119,7 @@ skill's structured document (thirteen non-empty text sections plus a non-empty
 `behaviorMap`, with `openQuestions` exactly `none`) and refuses without mutating state:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   record-preflight --repo "$PWD" --slug "<task>" \
   --workflow-id "<active-workflowId>" --input <preflight.json>
 ```
@@ -131,7 +131,7 @@ For behavior changes invoke `tdd` and select one pending Behavior Map ID. The RE
 The recorder's acceptance and refusal rules for runner-backed and non-runner attacks are owned by the tdd skill's [recorder.md](../tdd/recorder.md).
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd \
   --repo "$PWD" --slug "<task>" --phase red --behavior-id "BM_..." \
   -- <targeted-command>
 ```
@@ -139,7 +139,7 @@ python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd 
 In this governed workflow the public TDD producers are required; `set-phase` does not accept the `tdd` phase. They keep bounded evidence and advance state but are not proof by themselves. For genuinely non-behavioral work, `--not-required` is available only after every map item is already satisfied or omitted by governing evidence:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   tdd --repo "$PWD" --slug "<task>" \
   --not-required "<specific non-behavioral reason>"
 ```
@@ -153,7 +153,7 @@ pre-implementation tree; the verdict is the lead's baseline and nothing waits
 on a recording of it:
 
 ```bash
-python3 "$HOME/.claude/skills/production-code/scripts/code_quality_gate.py" \
+python3 "$HOME/.config/devin/skills/production-code/scripts/code_quality_gate.py" \
   check --repo "$PWD" --json > gate.json
 ```
 
@@ -180,7 +180,7 @@ review steps without reopening production editing.
 After the smallest production edit, run GREEN on the same mapped surface:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" tdd \
   --repo "$PWD" --slug "<task>" --phase green --behavior-id "BM_..." \
   -- <same test surface>
 ```
@@ -188,7 +188,7 @@ python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" tdd 
 Use Production Code's **Minimum Implementation Decision** for repair completion and TDD's [map-update and reassessment rules](../tdd/recorder.md). Batch affected preservation and additive finding ownership in the existing call:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   tdd-map --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" --input - <<'JSON'
 {"reassessment":"Affected preservation and retained attack ownership","dispositions":[{"id":"BM_KEEP","revalidate":true,"evidence":"Changed shared decision"},{"id":"BM_ATTACK","sourceRefs":[{"type":"finding","evidenceId":"<actual intake>","id":"SPEC-1"}]}]}
 JSON
@@ -209,9 +209,9 @@ changed between its start and its commit is retained invalid naming the
 drifted paths:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   verify --repo "$PWD" --slug "<task>" -- <verification command>
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   verify --repo "$PWD" --slug "<task>" --kind quality-gate --base-ref "<base>"
 ```
 
@@ -239,7 +239,7 @@ workflow it stays optional. For a genuinely trivial change, record
 
 Before recording, match checkout/workflow/tree against dispatch and
 `workflow.py status`. Verify agent identity from `subagents/agent-<id>.meta.json`
-and its forked-skill marker under `~/.claude/projects`; match model and effort
+and its forked-skill marker under `~/.local/share/devin/cli`; match model and effort
 from harness receipts to the loaded `code-review` frontmatter. Missing or
 mismatched evidence blocks recording: report it. Record
 immutable intake first as `{"findings":[...]}` through the unified Interface. If it contains findings,
@@ -248,13 +248,13 @@ the same command with `{"context":{"workflowId":"...","candidateTree":"...","prH
 each disposition carries `kind`, `premise`, `occurrence`, and
 `materialConsequence`. A document carrying both forms refuses. Print the
 canonical disposition shape table, generated from its installed validator
-declarations, with `python3 -I -c 'import sys; from pathlib import Path; sys.path.insert(0, str(Path.home() / ".claude")); from hooks.lib.workflow_documents import DOCUMENT_SHAPE_TABLE; print(DOCUMENT_SHAPE_TABLE)'`;
+declarations, with `python3 -I -c 'import sys; from pathlib import Path; sys.path.insert(0, str(Path.home() / ".config" / "devin")); from hooks.lib.workflow_documents import DOCUMENT_SHAPE_TABLE; print(DOCUMENT_SHAPE_TABLE)'`;
 the `codex-advisor` skill's disposition section owns the recorder's other
 refusals (temporary-directory paths, behavioral `report-only` without a proved
 owning attack).
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   record-review --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" \
   --resolved-model "<model>" --review-context-id "<agent-id>" --input <review.json>
 ```
@@ -293,7 +293,7 @@ verification, code review where required, and final review.
 ### 12. Complete the workflow
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   complete --repo "$PWD"
 ```
 

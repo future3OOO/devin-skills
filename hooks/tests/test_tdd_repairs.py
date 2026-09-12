@@ -44,11 +44,11 @@ class MappedTddRepairTests(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="mapped-tdd-"))
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
-        self.previous_state_root = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
+        self.previous_state_root = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
         self.env = os.environ.copy()
         self.env.update(
             {
-                "CLAUDE_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
+                "DEVIN_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
                 "GIT_CONFIG_GLOBAL": os.devnull,
                 "GIT_CONFIG_SYSTEM": os.devnull,
                 "PYTHONDONTWRITEBYTECODE": "1",
@@ -57,8 +57,8 @@ class MappedTddRepairTests(unittest.TestCase):
         )
         for name in ("PYTEST_ADDOPTS", "PYTEST_PLUGINS"):
             self.env.pop(name, None)
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = self.env[
-            "CLAUDE_WORKFLOW_STATE_ROOT"
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = self.env[
+            "DEVIN_WORKFLOW_STATE_ROOT"
         ]
         self.git("init", "-q")
         self.git("config", "user.email", "test@example.invalid")
@@ -69,9 +69,9 @@ class MappedTddRepairTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.previous_state_root is None:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         else:
-            os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = self.previous_state_root
+            os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = self.previous_state_root
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def git(self, *args: str) -> None:

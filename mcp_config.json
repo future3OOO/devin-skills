@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "gitnexus": {
+      "command": "node",
+      "args": [
+        "/home/prop_/.local/share/gitnexus/current/gitnexus/dist/cli/index.js",
+        "mcp"
+      ],
+      "env": {}
+    },
+    "fff": {
+      "command": "/home/prop_/.local/bin/fff-mcp",
+      "args": [
+        "--no-update-check"
+      ],
+      "env": {}
+    }
+  }
+}

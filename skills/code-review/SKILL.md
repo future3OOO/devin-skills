@@ -1,11 +1,8 @@
 ---
 name: code-review
 description: Review a diff since a fixed point along independent Standards and Spec axes. Use for PRs, branches, WIP changes, or governed completion review.
-context: fork
-agent: general-purpose
-model: claude-opus-5
-effort: xhigh
-background: true
+agent: subagent_general
+model: opus
 ---
 
 # Code review
@@ -14,13 +11,13 @@ You are a fresh-context reviewer running in the lead's checkout. You own
 review, not implementation: read source and run tests or attacks, but never
 edit candidate source, rewrite the contract, mutate the active workflow ledger,
 merge, or install. Run every mutating operation against temporary state (for
-this estate's recorder, a temporary `CLAUDE_WORKFLOW_STATE_ROOT`) and clean up.
+this estate's recorder, a temporary `DEVIN_WORKFLOW_STATE_ROOT`) and clean up.
 
 ## 1. Fix the review target
 
 In a governed pass read the contract and candidate identity (`intent`,
 `workflowId`, `activeCandidateTree`, `baseOid`) from
-`python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" status --repo "$PWD"`
+`python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" status --repo "$PWD"`
 and its recorded evidence; otherwise take them from the PR or request. Record
 repository, branch, base and head SHAs, and dirty/staged state. Review the
 actual diff and current files, not a prose summary; if the target changes, the

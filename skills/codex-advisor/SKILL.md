@@ -115,12 +115,12 @@ keep transport output separate. Capture stdout and stderr independently and
 wait for the process rather than polling with repeated sleeps.
 
 ```bash
-"$HOME/.claude/skills/codex-advisor/scripts/ask-codex-advisor.sh" \
+"$HOME/.config/devin/skills/codex-advisor/scripts/ask-codex-advisor.sh" \
   --slug "<task>" --phase preflight-advice \
   --cwd "$PWD" --design-file "<design-artifact>" \
   --budget 600 -- "<focused scope question>"
 
-"$HOME/.claude/skills/codex-advisor/scripts/ask-codex-advisor.sh" \
+"$HOME/.config/devin/skills/codex-advisor/scripts/ask-codex-advisor.sh" \
   --slug "<task>" --phase final-review \
   --cwd "$PWD" --design-file "<design-artifact>" \
   --budget 600 -- "<focused completion question>"
@@ -214,7 +214,7 @@ nonbehavioral or measured-false finding is dispositioned whenever its
 measurement exists; findings block completion only:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   advisor-disposition --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" --stage preflight --findings addressed --input <document>
 ```
 
@@ -241,14 +241,14 @@ evidence citing a temporary-directory path refuses. `report-only`, `rejected-wit
 findings-plus-dispositions form remains compatible for measured nonbehavioral
 results. A refusal mutates no state.
 Print the canonical disposition and governed-design shape table, generated from
-its installed validator declarations, with `python3 -I -c 'import sys; from pathlib import Path; sys.path.insert(0, str(Path.home() / ".claude")); from hooks.lib.workflow_documents import DOCUMENT_SHAPE_TABLE; print(DOCUMENT_SHAPE_TABLE)'`.
+its installed validator declarations, with `python3 -I -c 'import sys; from pathlib import Path; sys.path.insert(0, str(Path.home() / ".config" / "devin")); from hooks.lib.workflow_documents import DOCUMENT_SHAPE_TABLE; print(DOCUMENT_SHAPE_TABLE)'`.
 
 For an unavailable consult, record the full
 slug- and instance-bound command; no disposition is needed and final review
 has no unavailable route:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   advisor-result --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" \
   --stage preflight --source codex-advisor \
   --verdict unavailable --reason "<measured transport failure>"
@@ -258,7 +258,7 @@ After validating final-review output, record the final disposition the same
 way:
 
 ```bash
-python3 "$HOME/.claude/skills/repo-production-workflow/scripts/workflow.py" \
+python3 "$HOME/.config/devin/skills/repo-production-workflow/scripts/workflow.py" \
   advisor-disposition --repo "$PWD" --slug "<task>" --workflow-id "<active-workflowId>" \
   --stage final --findings addressed --input <disposition.json>
 ```

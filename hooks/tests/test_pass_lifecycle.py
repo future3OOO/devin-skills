@@ -118,13 +118,13 @@ class PassLifecycleTests(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp(prefix="workflow-pass-lifecycle-"))
         self.repo = self.tmp / "repo"
         self.repo.mkdir()
-        self.previous_state_root = os.environ.get("CLAUDE_WORKFLOW_STATE_ROOT")
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
+        self.previous_state_root = os.environ.get("DEVIN_WORKFLOW_STATE_ROOT")
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.tmp / "state")
         self.env = os.environ.copy()
         for name in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR"):
             self.env.pop(name, None)
         self.env.update({
-            "CLAUDE_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
+            "DEVIN_WORKFLOW_STATE_ROOT": str(self.tmp / "state"),
             "GIT_CONFIG_GLOBAL": os.devnull,
             "GIT_CONFIG_SYSTEM": os.devnull,
             "PYTHONDONTWRITEBYTECODE": "1",
@@ -143,9 +143,9 @@ class PassLifecycleTests(unittest.TestCase):
 
     def tearDown(self) -> None:
         if self.previous_state_root is None:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         else:
-            os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = self.previous_state_root
+            os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = self.previous_state_root
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def git(self, *args: str) -> str:
@@ -202,7 +202,7 @@ class PassLifecycleTests(unittest.TestCase):
         """
         import sqlite3
         identity = resolve_repo_identity(self.repo)
-        database = Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"]) / identity.key / "workflow.sqlite3"
+        database = Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"]) / identity.key / "workflow.sqlite3"
         connection = sqlite3.connect(database)
         try:
             event_id = connection.execute(
@@ -3007,7 +3007,7 @@ annotate_tdd_evidence(resolve_repo_identity(sys.argv[1]), 'terminal-state', sys.
 
     def test_legacy_state_without_an_instance_id_rejects_every_producer(self) -> None:
         identity = resolve_repo_identity(self.repo)
-        state_dir = Path(self.env["CLAUDE_WORKFLOW_STATE_ROOT"]) / identity.key
+        state_dir = Path(self.env["DEVIN_WORKFLOW_STATE_ROOT"]) / identity.key
         state_dir.mkdir(parents=True, mode=0o700)
         state_path = state_dir / "workflow.json"
         legacy = {

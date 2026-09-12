@@ -2,7 +2,7 @@
 """Public contract for retiring workflow state: the real prune CLI over a synthetic root.
 
 Every test builds its own state root under a temporary directory and points
-CLAUDE_WORKFLOW_STATE_ROOT at it. Pruning is destructive, so no test may ever
+DEVIN_WORKFLOW_STATE_ROOT at it. Pruning is destructive, so no test may ever
 reach the estate's live root.
 """
 from __future__ import annotations
@@ -51,7 +51,7 @@ class StatePruneTests(unittest.TestCase):
         """Run the real CLI against this test's synthetic root and parse its report."""
         environment = {
             **os.environ,
-            "CLAUDE_WORKFLOW_STATE_ROOT": str(self.root),
+            "DEVIN_WORKFLOW_STATE_ROOT": str(self.root),
             "PYTHONDONTWRITEBYTECODE": "1",
         }
         result = subprocess.run(
@@ -396,7 +396,7 @@ class StatePruneTests(unittest.TestCase):
         """A destructive-mode flag must not be silently ignored elsewhere."""
         environment = {
             **os.environ,
-            "CLAUDE_WORKFLOW_STATE_ROOT": str(self.root),
+            "DEVIN_WORKFLOW_STATE_ROOT": str(self.root),
             "PYTHONDONTWRITEBYTECODE": "1",
         }
         result = subprocess.run(
@@ -562,7 +562,7 @@ class StatePruneTests(unittest.TestCase):
         """
         from hooks.lib.state_store import stop_session_swap
         identity = self.real_repo_identity(name)
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.root)
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.root)
         try:
             # state_root() reads the override per call, so the real writer
             # lands in this test's synthetic root with no reload tricks.
@@ -571,7 +571,7 @@ class StatePruneTests(unittest.TestCase):
             # string is a real producer payload and must stay removable.
             stop_session_swap(identity, "sess-b", "blockFingerprint", "")
         finally:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         slot = self.root / identity.key
         (slot / "workflow.json").write_text(json.dumps({
             "schemaVersion": 1, "workflowId": "w-dead",
@@ -634,12 +634,12 @@ class StatePruneTests(unittest.TestCase):
         from hooks.lib.state_store import record_session_association
         dead = self.real_repo_identity("deadrepo")
         live = self.real_repo_identity("liverepo")
-        os.environ["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.root)
+        os.environ["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.root)
         try:
             record_session_association("sess-b", dead)
             record_session_association("sess-b", live)
         finally:
-            os.environ.pop("CLAUDE_WORKFLOW_STATE_ROOT", None)
+            os.environ.pop("DEVIN_WORKFLOW_STATE_ROOT", None)
         shutil.rmtree(self.tmp / "deadrepo")
         malformed = self.root / "sessions" / "sess-b" / "marker.json"
         malformed.write_text('{"kept":true}\n', encoding="utf-8")
@@ -659,7 +659,7 @@ class StatePruneTests(unittest.TestCase):
 
         The real wrapper runs offline (it dies at its alias-parse stage, after
         the pointer is written); nothing may land under the distinct
-        CLAUDE_HOME fallback.
+        DEVIN_ESTATE_HOME fallback.
         """
         wrapper = ROOT / "skills" / "codex-advisor" / "scripts" / "ask-codex-advisor.sh"
         repo = self.tmp / "wrapperrepo"
@@ -670,13 +670,13 @@ class StatePruneTests(unittest.TestCase):
             [str(wrapper), "--slug", "shared-root", "--cwd", str(repo), "--", "q"],
             capture_output=True, text=True,
             env={**os.environ, "HOME": str(self.tmp / "home"),
-                 "CLAUDE_HOME": str(fallback),
-                 "CLAUDE_WORKFLOW_STATE_ROOT": str(self.root)},
+                 "DEVIN_ESTATE_HOME": str(fallback),
+                 "DEVIN_WORKFLOW_STATE_ROOT": str(self.root)},
         )
         pointers = list((self.root / "_advisor-sessions").glob("*.sid"))
         self.assertEqual(len(pointers), 1, "the wrapper must write its pointer under the shared root")
         self.assertFalse((fallback / "state" / "_advisor-sessions").exists(),
-                         "nothing may land under the CLAUDE_HOME fallback")
+                         "nothing may land under the DEVIN_ESTATE_HOME fallback")
 
         report = self.prune()
         names = {entry["path"] for entry in report["advisorSessions"]}
@@ -725,7 +725,7 @@ class SQLiteStatePruneTests(unittest.TestCase):
         git(self.repo, "commit", "-q", "-m", "base")
         self.state_root = self.tmp / "state"
         self.env = os.environ.copy()
-        self.env["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.state_root)
+        self.env["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.state_root)
 
     def tearDown(self) -> None:
         shutil.rmtree(self.tmp, ignore_errors=True)
@@ -850,12 +850,12 @@ class SQLiteStatePruneTests(unittest.TestCase):
         self.begin("active")
         linked = self.tmp / "linked-state"
         linked.symlink_to(self.state_root, target_is_directory=True)
-        previous = self.env["CLAUDE_WORKFLOW_STATE_ROOT"]
-        self.env["CLAUDE_WORKFLOW_STATE_ROOT"] = str(linked)
+        previous = self.env["DEVIN_WORKFLOW_STATE_ROOT"]
+        self.env["DEVIN_WORKFLOW_STATE_ROOT"] = str(linked)
         try:
             result = self.cli("prune")
         finally:
-            self.env["CLAUDE_WORKFLOW_STATE_ROOT"] = previous
+            self.env["DEVIN_WORKFLOW_STATE_ROOT"] = previous
         self.assertEqual(result.returncode, 0, result.stderr)
         slots = json.loads(result.stdout)["slots"]
         self.assertTrue(slots, "a trusted configured state-root symlink was treated as empty")
@@ -864,7 +864,7 @@ class SQLiteStatePruneTests(unittest.TestCase):
     def test_question_mark_state_root_keeps_authoritative_sqlite_classification(self) -> None:
         """A URI-reserved state-root path still opens its authoritative database."""
         self.state_root = self.tmp / "state?reserved"
-        self.env["CLAUDE_WORKFLOW_STATE_ROOT"] = str(self.state_root)
+        self.env["DEVIN_WORKFLOW_STATE_ROOT"] = str(self.state_root)
         self.begin("active")
         slot_key = resolve_repo_identity(self.repo).key
         database = self.state_root / slot_key / "workflow.sqlite3"
