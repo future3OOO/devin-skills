@@ -114,7 +114,6 @@ When spawning sub-agents via `run_subagent`, default to:
 
 - `profile`: choose the most specific profile that matches the task (`subagent_explore` for codebase searches and planning-input work, `subagent_general` otherwise).
 - `subagent_explore`: when reading production code, invoke `codebase-design` and discover deepening opportunities; do not stop at locating code.
-- Model: `subagent_explore` runs on the default subagent model (SWE-1.6 via the org router); `subagent_general` inherits the parent session's model. Pin a `model:` in a custom `.devin/agents/` profile or a skill's frontmatter when the task clearly warrants a different tier. Verify the executed model from harness receipts, not environment settings.
 
 Keep delegation bounded:
 

@@ -2,7 +2,7 @@
 name: code-review
 description: Review a diff since a fixed point along independent Standards and Spec axes. Use for PRs, branches, WIP changes, or governed completion review.
 agent: subagent_general
-model: opus
+model: swe-2-max
 ---
 
 # Code review

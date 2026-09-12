@@ -6,8 +6,7 @@ set -euo pipefail
 SRC="$(cd "$(dirname "$0")" && pwd -P)"
 DEST="$HOME/.config/devin"
 BACKUP="$HOME/.config/devin-backups/$(date +%Y%m%d-%H%M%S)"
-EXCLUDES=(--exclude='/hooks/tests' --exclude='/skills/codex-advisor/tests' \
-  --exclude='/skills/production-code/scripts/test_code_quality_gate.py' \
+EXCLUDES=(--exclude='tests/' --exclude='test_*.py' --exclude='test-*.sh' \
   --exclude='__pycache__' --exclude='*.pyc')
 
 mkdir -p "$DEST" "$BACKUP"
