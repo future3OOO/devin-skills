@@ -157,7 +157,8 @@ git -C "$rigtmp/repo" config user.email test@example.invalid
 git -C "$rigtmp/repo" config user.name Harness
 git -C "$rigtmp/repo" remote add origin https://example.invalid/advisor-rig.git
 printf 'value = 1\n' >"$rigtmp/repo/app.py"
-git -C "$rigtmp/repo" add app.py
+printf '__pycache__/\n' >"$rigtmp/repo/.gitignore"
+git -C "$rigtmp/repo" add app.py .gitignore
 git -C "$rigtmp/repo" commit -q -m base
 write_design "$rigtmp/design.md"
 cat >"$rigtmp/home/.bashrc" <<'BASHRC'
